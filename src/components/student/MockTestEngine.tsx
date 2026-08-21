@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../ui/GlassCard';
 import { MockTest, MockQuestion, MockTestResult } from '../../types';
 import { Award, Clock, CheckCircle2, Play, Sparkles, RefreshCw, FileText, ChevronRight, BarChart2 } from 'lucide-react';
-import { OPENROUTER_API_KEY } from '../../services/aiEngine';
 
 // Question Bank for all skills
 const skillQuestions: Record<string, Record<'Basic' | 'Intermediate' | 'Advanced', MockQuestion[]>> = {
@@ -231,12 +230,9 @@ export const MockTestEngine: React.FC = () => {
         }
       ]`;
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch('/api/v1/ai/chat', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://placementos.ai',
-          'X-Title': 'PlacementOS AI System',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

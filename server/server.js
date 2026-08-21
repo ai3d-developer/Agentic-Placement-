@@ -924,6 +924,44 @@ app.get('/api/v1/ai/daily-schedule', (req, res) => {
   });
 });
 
+// 6.5. GENERAL AI CHAT PROXY ENDPOINT
+app.post('/api/v1/ai/chat', async (req, res) => {
+  const { model, messages, temperature, max_tokens } = req.body;
+
+  if (!OPENROUTER_API_KEY) {
+    return res.status(500).json({ error: 'OpenRouter API Key is not configured on the server.' });
+  }
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://placementos.ai',
+        'X-Title': 'PlacementOS AI System',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model || 'google/gemini-2.5-flash',
+        messages: messages || [],
+        temperature: temperature ?? 0.3,
+        max_tokens: max_tokens ?? 1000
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: errorData });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error in AI Chat proxy:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 7. BACKEND RESUME PARSING ENDPOINT
 app.post('/api/v1/ai/parse-resume', (req, res) => {
   const { resumeText } = req.body;

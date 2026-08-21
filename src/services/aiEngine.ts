@@ -48,12 +48,9 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
 
   for (const model of modelsToTry) {
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch('/api/v1/ai/chat', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://placementos.ai',
-          'X-Title': 'PlacementOS AI System',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
