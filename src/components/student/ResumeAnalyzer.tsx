@@ -51,6 +51,9 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
       placementReadinessScore: parsed.placementReadinessScore,
       preferredRoles: parsed.targetRoles || ['Associate Software Engineer', 'Full Stack Developer'],
       preferredCompanies: parsed.recommendedCompanies || ['Google', 'Zoho', 'Microsoft'],
+      github: parsed.github || profile.github,
+      linkedin: parsed.linkedin || profile.linkedin,
+      portfolio: parsed.portfolio || profile.portfolio,
       resumeFileName: fileName || profile.resumeFileName || 'uploaded_resume.pdf',
       resumeUploadedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     };

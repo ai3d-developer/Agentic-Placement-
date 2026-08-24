@@ -26,6 +26,9 @@ export interface ParsedResumeProfileData {
   placementReadinessScore: number;
   targetRoles: string[];
   recommendedCompanies: string[];
+  github?: string;
+  linkedin?: string;
+  portfolio?: string;
 }
 
 /**
@@ -108,6 +111,9 @@ Respond with ONLY valid JSON (no markdown ticks, no extra commentary) matching t
   "technicalSkills": ["Skill1", "Skill2", "Skill3"],
   "projects": [{"title": "Project Title", "description": "Short summary", "techStack": ["Skill1", "Skill2"]}],
   "certifications": [{"title": "Cert Title", "issuer": "Issuer Org", "year": 2025}],
+  "github": "https://github.com/username (if found, otherwise empty)",
+  "linkedin": "https://linkedin.com/in/username (if found, otherwise empty)",
+  "portfolio": "https://yourportfolio.dev (if found, otherwise empty)",
   "atsScore": 85,
   "placementReadinessScore": 90,
   "targetRoles": ["Role 1", "Role 2"],
@@ -142,7 +148,10 @@ ${rawText.slice(0, 3500)}`;
           atsScore: parsedJson.atsScore || Math.min(95, Math.max(70, 72 + extractedSkills.length * 3)),
           placementReadinessScore: parsedJson.placementReadinessScore || 88,
           targetRoles: parsedJson.targetRoles || ['Software Engineer', 'Full Stack Developer'],
-          recommendedCompanies: parsedJson.recommendedCompanies || ['Google', 'Zoho', 'Microsoft', 'Amazon']
+          recommendedCompanies: parsedJson.recommendedCompanies || ['Google', 'Zoho', 'Microsoft', 'Amazon'],
+          github: parsedJson.github || '',
+          linkedin: parsedJson.linkedin || '',
+          portfolio: parsedJson.portfolio || ''
         };
       }
     }
@@ -164,6 +173,25 @@ function fallbackLocalResumeParser(rawText: string, currentProfile: UserProfile)
   // Extract Phone
   const phoneMatch = rawText.match(/(?:\+91[\s-]?)?[6-9]\d{9}|\b\d{10}\b/);
   const phone = phoneMatch ? phoneMatch[0] : (currentProfile.phone || '');
+
+  // Extract github link
+  const githubMatch = rawText.match(/https?:\/\/(?:www\.)?github\.com\/[a-zA-Z0-9_-]+/i);
+  const github = githubMatch ? githubMatch[0] : (currentProfile.github || '');
+
+  // Extract linkedin link
+  const linkedinMatch = rawText.match(/https?:\/\/(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
+  const linkedin = linkedinMatch ? linkedinMatch[0] : (currentProfile.linkedin || '');
+
+  // Extract portfolio link
+  // Matches any http/https URL except github.com and linkedin.com
+  const urlMatches = rawText.match(/https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b[-a-zA-Z0-9@:%_\+.~#?&//=]*/gi);
+  let portfolio = currentProfile.portfolio || '';
+  if (urlMatches) {
+    const portfolioUrl = urlMatches.find(url => !url.includes('github.com') && !url.includes('linkedin.com'));
+    if (portfolioUrl) {
+      portfolio = portfolioUrl;
+    }
+  }
 
   // Extract Candidate Name from first lines if available
   let extractedName = currentProfile.name && currentProfile.name !== 'Student Candidate' ? currentProfile.name : '';
@@ -258,7 +286,10 @@ function fallbackLocalResumeParser(rawText: string, currentProfile: UserProfile)
     atsScore: Math.min(95, Math.max(68, 68 + detectedSkills.length * 3)),
     placementReadinessScore: 88,
     targetRoles: ['Software Engineer', 'Technical Specialist'],
-    recommendedCompanies: ['Google', 'Zoho', 'Microsoft', 'TCS', 'Infosys']
+    recommendedCompanies: ['Google', 'Zoho', 'Microsoft', 'TCS', 'Infosys'],
+    github,
+    linkedin,
+    portfolio
   };
 }
 

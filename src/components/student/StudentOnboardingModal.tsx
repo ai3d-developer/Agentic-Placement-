@@ -104,6 +104,9 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
       if (parsed.certifications && parsed.certifications.length > 0) setCertifications(parsed.certifications);
       if (parsed.atsScore) setAtsScore(parsed.atsScore);
       if (parsed.placementReadinessScore) setReadinessScore(parsed.placementReadinessScore);
+      if (parsed.github) setGithub(parsed.github);
+      if (parsed.linkedin) setLinkedin(parsed.linkedin);
+      if (parsed.portfolio) setPortfolio(parsed.portfolio);
 
       // Save upload to Firebase Firestore
       const targetEmail = (profile.email && profile.email !== 'student@college.edu') ? profile.email : (parsed.email || email || 'student@university.edu');

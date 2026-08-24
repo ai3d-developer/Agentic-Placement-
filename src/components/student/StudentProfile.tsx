@@ -78,6 +78,9 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ onNavigateToJobs
         certifications: parsed.certifications && parsed.certifications.length > 0 ? parsed.certifications : formData.certifications,
         atsScore: parsed.atsScore || formData.atsScore,
         placementReadinessScore: parsed.placementReadinessScore || formData.placementReadinessScore,
+        github: parsed.github || formData.github,
+        linkedin: parsed.linkedin || formData.linkedin,
+        portfolio: parsed.portfolio || formData.portfolio,
         resumeFileName: file.name,
         resumeUploadedAt: new Date().toLocaleDateString()
       };
