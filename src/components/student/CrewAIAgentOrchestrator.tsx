@@ -153,7 +153,7 @@ export const CrewAIAgentOrchestrator: React.FC = () => {
       addConsoleLog("Agent 1: JobScoutAgent initialized. Scraping campus hiring drives & salary benchmarks...");
 
       // Call backend CrewAI execution API
-      const response = await fetch('/api/v1/crewai/execute', {
+      const response = await fetch(import.meta.env.DEV ? '/api/v1/crewai/execute' : 'https://placement-backend-z8c5.onrender.com/api/v1/crewai/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

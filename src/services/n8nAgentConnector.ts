@@ -182,7 +182,7 @@ export async function triggerN8nWorkflow(workflowCode: string, payload: any = {}
 
   // 2. Fallback to Express Backend API Gateway Proxy (/api/v1/n8n/trigger-workflow)
   try {
-    const backendRes = await fetch('/api/v1/n8n/trigger-workflow', {
+    const backendRes = await fetch(import.meta.env.DEV ? '/api/v1/n8n/trigger-workflow' : 'https://placement-backend-z8c5.onrender.com/api/v1/n8n/trigger-workflow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ workflowCode: wfCode, payload })
@@ -217,7 +217,7 @@ export async function triggerN8nWorkflow(workflowCode: string, payload: any = {}
  */
 export async function getLiveN8nStatus(): Promise<{ success: boolean; totalWorkflows: number; activeCount: number; workflows: N8nWorkflowConfig[] }> {
   try {
-    const res = await fetch('/api/v1/n8n/status');
+    const res = await fetch(import.meta.env.DEV ? '/api/v1/n8n/status' : 'https://placement-backend-z8c5.onrender.com/api/v1/n8n/status');
     if (res.ok) {
       const data = await res.json();
       return {

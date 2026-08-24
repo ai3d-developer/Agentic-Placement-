@@ -57,7 +57,7 @@ export const AIVoiceCallModal: React.FC<AIVoiceCallModalProps> = ({ isOpen, onCl
       let sourceTag = 'PlacementOS Express Backend API (/api/v1/ai/voice-call)';
 
       try {
-        const response = await fetch('/api/v1/ai/voice-call', {
+        const response = await fetch(import.meta.env.DEV ? '/api/v1/ai/voice-call' : 'https://placement-backend-z8c5.onrender.com/api/v1/ai/voice-call', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -118,7 +118,7 @@ export const AIVoiceCallModal: React.FC<AIVoiceCallModalProps> = ({ isOpen, onCl
     setPhoneCallStatus('📞 Dispatching call to real carrier network...');
 
     try {
-      const response = await fetch('/api/v1/ai/call-student', {
+      const response = await fetch(import.meta.env.DEV ? '/api/v1/ai/call-student' : 'https://placement-backend-z8c5.onrender.com/api/v1/ai/call-student', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -150,7 +150,7 @@ export const AIVoiceCallModal: React.FC<AIVoiceCallModalProps> = ({ isOpen, onCl
     setPhoneCallStatus('⏰ Running Daily Morning Call Batch Automation for all scheduled students...');
 
     try {
-      const response = await fetch('/api/v1/ai/trigger-daily-calls', {
+      const response = await fetch(import.meta.env.DEV ? '/api/v1/ai/trigger-daily-calls' : 'https://placement-backend-z8c5.onrender.com/api/v1/ai/trigger-daily-calls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
