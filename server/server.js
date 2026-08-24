@@ -13,7 +13,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'placement_os_ai_secret_key_2026';
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'google/gemini-2.5-flash';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'google/gemini-2.5-flash:free';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 
 // Twilio Telephony Credentials for Automated Real Mobile Phone Calls
@@ -951,7 +951,7 @@ app.post('/api/v1/ai/chat', async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: model || 'google/gemini-2.5-flash',
+        model: model || 'google/gemini-2.5-flash:free',
         messages: messages || [],
         temperature: temperature ?? 0.3,
         max_tokens: max_tokens ?? 1000

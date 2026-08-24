@@ -10,7 +10,7 @@ export const GEMINI_FALLBACK_MODELS = [
 ];
 
 export const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-export const OPENROUTER_PRIMARY_MODEL = 'google/gemini-2.5-flash';
+export const OPENROUTER_PRIMARY_MODEL = 'google/gemini-2.5-flash:free';
 
 export interface ParsedResumeProfileData {
   name: string;
@@ -32,7 +32,7 @@ export interface ParsedResumeProfileData {
 }
 
 /**
- * Google Gemini AI Engine Call (via OpenRouter API with google/gemini-2.5-flash)
+ * Google Gemini AI Engine Call (via OpenRouter API with google/gemini-2.5-flash:free)
  */
 export async function callGeminiAI(userPrompt: string, systemPrompt?: string): Promise<string> {
   return callOpenRouterAI(userPrompt, systemPrompt);
@@ -45,8 +45,9 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
   const sysMsg = systemPrompt || 'You are PlacementOS AI, an expert Senior Enterprise SaaS AI Placement & Career Consultant for university students.';
   const modelsToTry = [
     OPENROUTER_PRIMARY_MODEL,
-    'google/gemini-2.0-flash-001',
-    'meta-llama/llama-3.3-70b-instruct'
+    'google/gemini-2.5-flash:free',
+    'meta-llama/llama-3-8b-instruct:free',
+    'google/gemini-2.0-flash-001'
   ];
 
   for (const model of modelsToTry) {
