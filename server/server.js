@@ -928,15 +928,24 @@ app.get('/api/v1/ai/daily-schedule', (req, res) => {
 app.post('/api/v1/ai/chat', async (req, res) => {
   const { model, messages, temperature, max_tokens } = req.body;
 
-  if (!OPENROUTER_API_KEY) {
-    return res.status(500).json({ error: 'OpenRouter API Key is not configured on the server.' });
+  let apiKeyToUse = OPENROUTER_API_KEY;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const clientKey = authHeader.substring(7).trim();
+    if (clientKey) {
+      apiKeyToUse = clientKey;
+    }
+  }
+
+  if (!apiKeyToUse) {
+    return res.status(500).json({ error: 'OpenRouter API Key is not configured.' });
   }
 
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${apiKeyToUse}`,
         'HTTP-Referer': 'https://placementos.ai',
         'X-Title': 'PlacementOS AI System',
         'Content-Type': 'application/json'

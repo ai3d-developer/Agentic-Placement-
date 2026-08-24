@@ -79,6 +79,7 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
     setAnalyzing(false);
 
     addNotification(`⚡ Resume Extracted & Saved to Student Profile & Firebase Firestore! ${parsed.technicalSkills.length} Skills | ATS: ${parsed.atsScore}/100`);
+    setActiveTab('matching_jobs');
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

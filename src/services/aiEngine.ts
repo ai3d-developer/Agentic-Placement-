@@ -48,11 +48,20 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
 
   for (const model of modelsToTry) {
     try {
-      const response = await fetch('/api/v1/ai/chat', {
+      const localKey = localStorage.getItem('VITE_OPENROUTER_API_KEY');
+      const url = localKey ? 'https://openrouter.ai/api/v1/chat/completions' : '/api/v1/ai/chat';
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (localKey) {
+        headers['Authorization'] = `Bearer ${localKey}`;
+        headers['HTTP-Referer'] = 'https://placementos.ai';
+        headers['X-Title'] = 'PlacementOS AI System';
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           model,
           messages: [
@@ -86,23 +95,6 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
  * Parse Raw Resume Text into Structured Profile Data & Auto-fill Student Profile via Google Gemini AI
  */
 export async function parseResumeTextToProfile(rawText: string, currentProfile: UserProfile): Promise<ParsedResumeProfileData> {
-  // Trigger live n8n Cloud Resume Extraction Workflow (WF4) & Resume Optimizer (WF9)
-  try {
-    triggerN8nWorkflow('WF4', {
-      rawResumeText: rawText.slice(0, 3000),
-      studentName: currentProfile.name,
-      department: currentProfile.department,
-      uploadedAt: new Date().toISOString()
-    });
-
-    triggerN8nWorkflow('WF9', {
-      rawResumeText: rawText.slice(0, 3000),
-      targetRole: currentProfile.preferredRoles?.[0] || 'Software Engineer'
-    });
-  } catch (n8nErr) {
-    console.warn('n8n WF4/WF9 resume trigger note:', n8nErr);
-  }
-
   const jsonPrompt = `Extract complete student profile information from the following resume text.
 
 Respond with ONLY valid JSON (no markdown ticks, no extra commentary) matching this exact schema:

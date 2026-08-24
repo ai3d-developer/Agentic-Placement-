@@ -230,11 +230,20 @@ export const MockTestEngine: React.FC = () => {
         }
       ]`;
 
-      const response = await fetch('/api/v1/ai/chat', {
+      const localKey = localStorage.getItem('VITE_OPENROUTER_API_KEY');
+      const url = localKey ? 'https://openrouter.ai/api/v1/chat/completions' : '/api/v1/ai/chat';
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (localKey) {
+        headers['Authorization'] = `Bearer ${localKey}`;
+        headers['HTTP-Referer'] = 'https://placementos.ai';
+        headers['X-Title'] = 'PlacementOS AI System';
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash',
           messages: [
