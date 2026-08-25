@@ -7,6 +7,25 @@ interface IntroSplashScreenProps {
 
 export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWebsite }) => {
   const [countdown, setCountdown] = useState(2);
+  const [typedText, setTypedText] = useState('');
+  const [typingDone, setTypingDone] = useState(false);
+
+  const INTRO_MSG = "Hi! I'm your AI Agentic Placement Officer. 🎓";
+
+  // Typewriter effect
+  useEffect(() => {
+    let i = 0;
+    const tw = setInterval(() => {
+      if (i < INTRO_MSG.length) {
+        setTypedText(INTRO_MSG.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(tw);
+        setTypingDone(true);
+      }
+    }, 45);
+    return () => clearInterval(tw);
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -111,8 +130,21 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWeb
 
         {/* Description - Slides Left to Right */}
         <p className="text-sm sm:text-base text-slate-500 max-w-xl mb-8 leading-relaxed font-medium opacity-0 animate-slide-left-right delay-3">
-          Enterprise AI Placement Operating System for Higher Education. Automated Resume Screening, Skill Gap Analysis, Mock Interviews & Placement Analytics.
+          Enterprise AI Placement Operating System for Higher Education. Automated Resume Screening, Skill Gap Analysis, Mock Interviews &amp; Placement Analytics.
         </p>
+
+        {/* ── Typewriter Greeting Banner ── */}
+        <div className="flex items-center gap-3 px-5 py-3 mb-8 rounded-2xl bg-white border border-indigo-100 shadow-md w-full max-w-xl opacity-0 animate-slide-left-right delay-4">
+          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/30">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <p className="text-sm font-extrabold text-indigo-700 tracking-tight text-left">
+            {typedText}
+            {!typingDone && (
+              <span className="inline-block w-0.5 h-4 ml-0.5 bg-indigo-500 align-middle animate-pulse" />
+            )}
+          </p>
+        </div>
 
         {/* Highlight Badges - Slides Left to Right */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-10 w-full max-w-xl opacity-0 animate-slide-left-right delay-4">
@@ -120,7 +152,7 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWeb
             <Cpu className="w-5 h-5 text-indigo-600 shrink-0" />
             <div>
               <div className="text-xs font-bold text-slate-800">AI Intelligence</div>
-              <div className="text-[10px] text-slate-500">GPT & n8n Driven</div>
+              <div className="text-[10px] text-slate-500">Gemini AI Driven</div>
             </div>
           </div>
           <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center gap-2.5 text-left">
