@@ -32,7 +32,7 @@ export const TodayJobsModal: React.FC<TodayJobsModalProps> = ({
   onNavigateToJobs
 }) => {
   const { profile } = useAuth();
-  const [n8nJobs] = useState<JobOpportunity[]>(sampleJobs);
+  const [jobsList] = useState<JobOpportunity[]>(sampleJobs);
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
   const [selectedSourceFilter, setSelectedSourceFilter] = useState<string>('All');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState<'24h' | '1d'>('24h');
@@ -40,7 +40,7 @@ export const TodayJobsModal: React.FC<TodayJobsModalProps> = ({
   if (!isOpen) return null;
 
   // Filter jobs based on skills, past 24 hours post date, and verified portal sources
-  const todayJobs = n8nJobs.filter(job => {
+  const todayJobs = jobsList.filter(job => {
     // 1. Source check: LinkedIn, Naukri, Indeed, Social Media, and Official Sites
     const sourceLower = (job.source || '').toLowerCase();
     const matchesSource = 
@@ -75,8 +75,7 @@ export const TodayJobsModal: React.FC<TodayJobsModalProps> = ({
         dateLower.includes('today') || 
         dateLower.includes('now') || 
         dateLower.includes(' hour') || 
-        dateLower.includes('h ago') ||
-        (job.postedDate?.includes('n8n') || (job as any).isN8nSynced);
+        dateLower.includes('h ago');
     } else {
       matchesTime = 
         dateLower.includes('1 day') || 

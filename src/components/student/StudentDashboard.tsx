@@ -36,7 +36,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
   const { profile, addNotification } = useAuth();
   const [confirmingJob, setConfirmingJob] = useState<JobOpportunity | null>(null);
   const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
-  const [n8nJobs, setN8nJobs] = useState<JobOpportunity[]>(sampleJobs);
+  const [jobsList, setJobsList] = useState<JobOpportunity[]>(sampleJobs);
 
   // daily-auto-feed fetch removed
 
@@ -44,8 +44,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
 
   const missingSkills = isUnparsed ? ['Add Profile & Links'] : ['System Design', 'C++', 'Azure Cloud', 'Docker Orchestration'];
 
-  // Calculate real dynamic skill match percentage and matched skills for each job in n8nJobs using correct shared matching logic
-  const realSkillMatchedJobs = n8nJobs.map(job => {
+  // Calculate real dynamic skill match percentage and matched skills for each job in jobsList using correct shared matching logic
+  const realSkillMatchedJobs = jobsList.map(job => {
     const { matchPct, matched } = calculateDynamicMatch(job.skillsRequired, profile);
     return {
       ...job,
@@ -77,8 +77,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
       dateLower.includes('1 day') || 
       dateLower.includes('yesterday') || 
       dateLower.includes('1d ago') ||
-      dateLower.includes('24h ago') ||
-      (job.postedDate?.includes('n8n') || (job as any).isN8nSynced);
+      dateLower.includes('24h ago');
 
     if (!matchesTime) return false;
 
@@ -165,7 +164,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
     if (!appliedJobIds.includes(jobId)) {
       setAppliedJobIds(prev => [...prev, jobId]);
     }
-    const targetJob = n8nJobs.find((j: JobOpportunity) => j.id === jobId);
+    const targetJob = jobsList.find((j: JobOpportunity) => j.id === jobId);
     const companyName = targetJob?.company || 'Company';
     const roleName = targetJob?.role || 'Position';
     addNotification(`🎉 Application Submitted for ${companyName} (${roleName})! ${refNo ? `Ref No: ${refNo}` : 'Status Saved ✅'}`);
@@ -463,7 +462,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
               <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Personal AI Placement Insight
               </h4>
-              <span className="text-[10px] text-slate-400 font-mono">CrewAI Agent</span>
+              <span className="text-[10px] text-slate-400 font-mono">Placement AI</span>
             </div>
             <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-2">
               <p className="font-bold text-slate-900 dark:text-white">💡 Priority Target Recommendation:</p>

@@ -267,31 +267,3 @@ export const saveUploadedResumeDataToFirestore = async (
     return false;
   }
 };
-
-/**
- * Save n8n Matched Jobs array to Firebase Firestore
- */
-export const saveN8nJobsToFirestore = async (
-  studentEmail: string,
-  jobs: any[]
-): Promise<boolean> => {
-  const firestore = getFirebaseDb();
-  if (!firestore || !jobs || jobs.length === 0) return false;
-
-  try {
-    const docId = studentEmail ? studentEmail.replace(/[^a-zA-Z0-9]/g, '_') : 'current_matches';
-    const matchRef = doc(firestore, 'matches', docId);
-    await setDoc(matchRef, {
-      studentEmail,
-      totalMatched: jobs.length,
-      jobs: jobs,
-      lastN8nSyncTime: new Date().toISOString()
-    }, { merge: true });
-    console.log(`🔥 Saved ${jobs.length} n8n matched jobs to Firebase Firestore collection "matches"!`);
-    return true;
-  } catch (error) {
-    console.error('❌ Error saving n8n jobs to Firestore:', error);
-    return false;
-  }
-};
-

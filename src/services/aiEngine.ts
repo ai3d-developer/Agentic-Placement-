@@ -1,5 +1,4 @@
 import { UserProfile, ResumeAnalysisResult, SkillGapAnalysis, InterviewEvaluationReport } from '../types/index';
-import { triggerN8nWorkflow } from './n8nAgentConnector';
 
 export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 export const GEMINI_PRIMARY_MODEL = 'gemini-flash-latest';
@@ -53,14 +52,15 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
   for (const model of modelsToTry) {
     try {
       const localKey = localStorage.getItem('VITE_OPENROUTER_API_KEY');
-      const url = localKey 
+      const apiKey = localKey || OPENROUTER_API_KEY;
+      const url = apiKey 
         ? 'https://openrouter.ai/api/v1/chat/completions' 
         : (import.meta.env.DEV ? '/api/v1/ai/chat' : 'https://placement-backend-z8c5.onrender.com/api/v1/ai/chat');
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
-      if (localKey) {
-        headers['Authorization'] = `Bearer ${localKey}`;
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
         headers['HTTP-Referer'] = 'https://placementos.ai';
         headers['X-Title'] = 'PlacementOS AI System';
       }

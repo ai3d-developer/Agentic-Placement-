@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { parseResumeTextToProfile } from '../../services/aiEngine';
 import { extractTextFromPdfFile } from '../../utils/pdfExtractor';
-import { saveUploadedResumeDataToFirestore, saveN8nJobsToFirestore, saveStudentProfileToFirestore } from '../../services/firebase';
+import { saveUploadedResumeDataToFirestore, saveStudentProfileToFirestore } from '../../services/firebase';
 import {
   User,
   GraduationCap,

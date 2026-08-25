@@ -6,12 +6,10 @@ import { Sparkles, Target, Briefcase, Award, Building, Clock, CheckCircle2 } fro
 interface PersonalAIAgentWidgetProps {
   onNavigateToJobs?: () => void;
   onNavigateToResume?: () => void;
-  onNavigateToCrewAI?: () => void;
 }
 
 export const PersonalAIAgentWidget: React.FC<PersonalAIAgentWidgetProps> = ({
-  onNavigateToJobs,
-  onNavigateToCrewAI
+  onNavigateToJobs
 }) => {
   const { profile } = useAuth();
   const agent = sampleAIAgentStatus;

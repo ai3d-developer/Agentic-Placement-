@@ -126,7 +126,6 @@ const MainContent: React.FC = () => {
       case 'super_admin':
       case 'user_management':
       case 'system_settings':
-      case 'n8n_integration':
         return <SuperAdminDashboard activeTab={activeTab} />;
       
       default:

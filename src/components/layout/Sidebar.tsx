@@ -89,8 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
   const superAdminNavItems = [
     { id: 'super_admin', label: 'Platform Management', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'user_management', label: 'Roles & Permissions', icon: <Users className="w-4 h-4" /> },
-    { id: 'system_settings', label: 'System Config & Logs', icon: <Cpu className="w-4 h-4" /> },
-    { id: 'n8n_integration', label: 'n8n Workflow Panel', icon: <Bot className="w-4 h-4" /> }
+    { id: 'system_settings', label: 'System Config & Logs', icon: <Cpu className="w-4 h-4" /> }
   ];
 
   const getNavItems = () => {

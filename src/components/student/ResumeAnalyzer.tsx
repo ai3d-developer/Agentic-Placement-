@@ -102,12 +102,7 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
 
   const currentDept = profile.department || 'Computer Science & Engineering';
 
-  const [n8nJobs, setN8nJobs] = useState<JobOpportunity[]>(sampleJobs);
-
-  // daily-auto-feed fetch removed
-
-  const rawJobs = [...n8nJobs, ...sampleJobs];
-  const combinedJobs = Array.from(new Map(rawJobs.map(j => [j.id, j])).values());
+  const combinedJobs = sampleJobs;
 
   // Calculate real skill match for jobs against extracted profile skills & department
   const realMatchingJobs = isUnparsed ? [] : combinedJobs.map(job => {

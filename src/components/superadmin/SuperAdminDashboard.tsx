@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { GlassCard } from '../ui/GlassCard';
 import { Shield, Server, Cpu, Building2, Plus, CheckCircle2, Activity, ListFilter, Settings, Zap, Eye, EyeOff, Save, Trash2 } from 'lucide-react';
-import { N8nWorkflowControlPanel } from '../ui/N8nWorkflowControlPanel';
 
 interface SuperAdminDashboardProps {
   activeTab?: string;
@@ -219,10 +218,6 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ active
                   <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold">Connected ✅</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>n8n Cloud Webhook Orchestration</span>
-                  <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold">Live Synced ✅</span>
-                </div>
-                <div className="flex justify-between items-center">
                   <span>Docker Swarm Container Status</span>
                   <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold">12/12 Running ✅</span>
                 </div>
@@ -230,11 +225,6 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ active
             </div>
           </div>
         </GlassCard>
-      )}
-
-      {/* RENDER N8N INTEGRATION PANEL */}
-      {activeTab === 'n8n_integration' && (
-        <N8nWorkflowControlPanel />
       )}
     </div>
   );

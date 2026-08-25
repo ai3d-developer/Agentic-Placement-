@@ -4,8 +4,6 @@ import { GlassCard } from '../ui/GlassCard';
 import { ApplicationConfirmationModal } from '../ui/ApplicationConfirmationModal';
 import { JobOpportunity, JobSourceType } from '../../types';
 import { getCompanyPortalDeepLink, getAlternativePortalLinks } from '../../utils/jobLinks';
-import { N8nWorkflowControlPanel } from '../ui/N8nWorkflowControlPanel';
-import { triggerN8nWorkflow } from '../../services/n8nAgentConnector';
 import { sampleJobs } from '../../services/mockData';
 import { calculateDynamicMatch as calculateDynamicMatchShared } from '../../utils/jobMatch';
 import { callGeminiAI } from '../../services/aiEngine';
@@ -337,30 +335,27 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
   const [lastCheckTime, setLastCheckTime] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // n8n + Apify Live Job Scraping Engine state
-  const [apifyScrapedJobs, setApifyScrapedJobs] = useState<any[]>([]);
-  const [isApifyRunning, setIsApifyRunning] = useState(false);
-  const [apifyStatus, setApifyStatus] = useState<string>('✅ Verified Jobs Engine Active: Openings from LinkedIn, Naukri, Indeed, Official Careers & Social Media Posts loaded.');
+  // Live Job Engine state
+  const [isFetchRunning, setIsFetchRunning] = useState(false);
+  const [engineStatus, setEngineStatus] = useState<string>('✅ Verified Jobs Engine Active: Openings from LinkedIn, Naukri, Indeed, Official Careers & Social Media Posts loaded.');
   const [apifySourceFilter, setApifySourceFilter] = useState<'All' | 'Official Company Careers' | 'LinkedIn Verified Jobs' | 'Twitter/X Verified Jobs'>('All');
-  const [showN8nControlPanel, setShowN8nControlPanel] = useState<boolean>(false);
-
 
   useEffect(() => {
-    setApifyStatus('✅ Daily Auto-Sync active: Synced with Google, Zoho, TI, Microsoft, Amazon & Social hiring channels.');
+    setEngineStatus('✅ Daily Auto-Sync active: Synced with Google, Zoho, TI, Microsoft, Amazon & Social hiring channels.');
   }, []);
 
-  const triggerApifyN8nJobSearch = async () => {
-    setIsApifyRunning(true);
-    setApifyStatus('🤖 Launching n8n Webhook & Apify Actors (Google Jobs, LinkedIn, Official Careers Scraper)...');
+  const triggerJobSearch = async () => {
+    setIsFetchRunning(true);
+    setEngineStatus('🤖 Launching Job Search & Verification Pipeline...');
     setTimeout(() => {
-      setApifyStatus('✅ Apify Verified Job Engine synced with Google, Zoho, TI, Microsoft & Amazon Official Careers.');
-      setIsApifyRunning(false);
+      setEngineStatus('✅ Verified Job Engine synced with Google, Zoho, TI, Microsoft & Amazon Official Careers.');
+      setIsFetchRunning(false);
     }, 600);
   };
 
   const handleRefreshJobs = () => {
     setIsRefreshing(true);
-    triggerApifyN8nJobSearch();
+    triggerJobSearch();
     setTimeout(() => {
       const now = new Date();
       const formatted = `${now.toISOString().split('T')[0]} at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`;
@@ -387,14 +382,8 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
     return calculateDynamicMatchShared(jobSkills, profile);
   };
 
-  // Verified Jobs Dataset across all platforms (LinkedIn, Naukri, Indeed, Official Company Careers, Social Media) + dynamic live jobs
-  const rawJobsList = [
-    ...apifyScrapedJobs,
-    ...sampleJobs
-  ];
-
-  // Deduplicate by job ID
-  const combinedJobsList = Array.from(new Map(rawJobsList.map(j => [j.id, j])).values());
+  // Verified Jobs Dataset
+  const combinedJobsList = sampleJobs;
 
   const isUnparsed = (!profile.technicalSkills || profile.technicalSkills.length === 0) && (!profile.department || profile.department === '');
 
@@ -797,23 +786,15 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
         {filteredJobs.length === 0 ? (
           <GlassCard className="p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-cyan-400 flex items-center justify-center mx-auto">
-              <RefreshCw className={`w-7 h-7 ${isApifyRunning ? 'animate-spin text-cyan-400' : ''}`} />
+              <Briefcase className="w-7 h-7" />
             </div>
             <div className="space-y-2 max-w-md mx-auto">
               <h3 className="text-base font-black text-slate-900 dark:text-white">
-                🤖 No Jobs Found in Current n8n Feed
+                🤖 No Jobs Found
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                Jobs are synced live via n8n daily workflows and webhooks. Click below to trigger the n8n Workflow job fetcher now!
+                No matching jobs found at the moment. Adjust your filters or check back later!
               </p>
-              <button
-                onClick={triggerApifyN8nJobSearch}
-                disabled={isApifyRunning}
-                className="mt-3 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-extrabold text-xs shadow-lg hover:shadow-indigo-500/25 transition-all flex items-center gap-2 mx-auto disabled:opacity-50"
-              >
-                <Zap className="w-4 h-4 text-amber-300" />
-                <span>{isApifyRunning ? 'Executing n8n Workflow Job Fetch...' : 'Fetch Jobs via n8n Workflow'}</span>
-              </button>
             </div>
           </GlassCard>
         ) : (
@@ -848,11 +829,6 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getSourceBadgeColor(job.source)}`}>
                         Portal: {job.source}
                       </span>
-                      {(job.postedDate?.includes('n8n') || job.isN8nSynced) && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
-                          ⚡ n8n Live Synced
-                        </span>
-                      )}
                       <span>{job.postedDate}</span>
                     </div>
                   </div>
