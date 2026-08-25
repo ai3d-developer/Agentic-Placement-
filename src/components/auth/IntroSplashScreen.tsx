@@ -6,7 +6,7 @@ interface IntroSplashScreenProps {
 }
 
 export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWebsite }) => {
-  const [countdown, setCountdown] = useState(2);
+  const [countdown, setCountdown] = useState(5);
   const [charCount, setCharCount] = useState(0);
   const [typingDone, setTypingDone] = useState(false);
 
@@ -201,7 +201,7 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWeb
         <div 
           className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400"
           style={{
-            animation: 'widthProgress 2s linear forwards'
+            animation: 'widthProgress 5s linear forwards'
           }}
         />
       </div>
