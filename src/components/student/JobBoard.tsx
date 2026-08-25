@@ -374,6 +374,28 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
   const sourcesList = ['All', 'Official Careers', 'LinkedIn', 'Naukri', 'Indeed', 'Glassdoor'];
   const locationsList = ['All', 'Worldwide / Remote', 'India', 'United States', 'Europe / UK', 'Asia-Pacific'];
 
+  const getDisplayRoleName = (job: JobOpportunity, selectedSrc: string) => {
+    const sourceToUse = selectedSrc !== 'All' ? selectedSrc : job.source;
+    const sourceLower = sourceToUse.toLowerCase();
+    
+    if (sourceLower.includes('linkedin')) {
+      return job.linkedInRoleName || job.role;
+    }
+    if (sourceLower.includes('naukri')) {
+      return job.naukriRoleName || job.role;
+    }
+    if (sourceLower.includes('indeed')) {
+      return job.indeedRoleName || job.role;
+    }
+    if (sourceLower.includes('official') || sourceLower.includes('company') || sourceLower.includes('careers')) {
+      return job.officialSiteRoleName || job.role;
+    }
+    if (sourceLower.includes('glassdoor')) {
+      return job.socialMediaRoleName || job.role;
+    }
+    return job.role;
+  };
+
   // Helper to extract clean corporate keywords
 
 
@@ -443,8 +465,14 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
     }
 
     // Filter by portal source
-    if (selectedSource !== 'All' && !job.source.toLowerCase().includes(selectedSource.toLowerCase())) {
-      return false;
+    if (selectedSource !== 'All') {
+      const srcLower = selectedSource.toLowerCase();
+      const jobSrcLower = job.source.toLowerCase();
+      if (srcLower === 'official careers') {
+        if (!jobSrcLower.includes('official') && !jobSrcLower.includes('company') && !jobSrcLower.includes('careers')) return false;
+      } else {
+        if (!jobSrcLower.includes(srcLower)) return false;
+      }
     }
 
     // Filter by location
@@ -666,50 +694,8 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
 
         {/* Filter Tags Breakdown */}
         <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs">
-          {/* Department Filter Tags */}
-          {!onlyMyDepartment && (
-            <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase w-32 shrink-0">Filter by Department:</span>
-              <div className="flex items-center space-x-1 flex-wrap gap-1">
-                {departmentsList.map(dept => (
-                  <button
-                    key={dept}
-                    onClick={() => setSelectedDeptFilter(dept)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                      selectedDeptFilter === dept
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {dept}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Skill Filter Tags */}
-          <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase w-32 shrink-0">Filter by Skill:</span>
-            <div className="flex items-center space-x-1 flex-wrap gap-1">
-              {availableSkillTags.map(skill => (
-                <button
-                  key={skill}
-                  onClick={() => setSelectedSkillTag(skill)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                    selectedSkillTag === skill
-                      ? 'bg-cyan-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  {skill}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Portal Sources Filter Tags (LinkedIn, Naukri, Indeed, Glassdoor, Official Careers) */}
-          <div className="flex items-center space-x-2 flex-wrap gap-y-1 pt-1 border-t border-slate-100 dark:border-slate-800/40">
+          <div className="flex items-center space-x-2 flex-wrap gap-y-1">
             <span className="text-[10px] font-bold text-slate-400 uppercase w-32 shrink-0">Filter by Portal Source:</span>
             <div className="flex items-center space-x-1 flex-wrap gap-1">
               {sourcesList.map(src => (
@@ -813,7 +799,7 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                       <h3 className="text-base md:text-lg font-black text-slate-900 dark:text-white">
-                        {job.role}
+                        {getDisplayRoleName(job, selectedSource)}
                       </h3>
                       <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30">
                         {job.company}
