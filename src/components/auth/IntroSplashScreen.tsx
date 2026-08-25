@@ -134,14 +134,14 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWeb
         </p>
 
         {/* ── Typewriter Greeting Banner ── */}
-        <div className="flex items-center gap-3 px-5 py-3 mb-8 rounded-2xl bg-white border border-indigo-100 shadow-md w-full max-w-xl opacity-0 animate-slide-left-right delay-4">
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/30">
-            <Bot className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-4 px-6 py-4 mb-8 rounded-2xl bg-white border-2 border-indigo-200 shadow-lg w-full max-w-2xl opacity-0 animate-slide-left-right delay-4">
+          <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/40">
+            <Bot className="w-7 h-7 text-white" />
           </div>
-          <p className="text-sm font-extrabold text-indigo-700 tracking-tight text-left">
+          <p className="text-xl sm:text-2xl font-black text-indigo-700 tracking-tight text-left leading-snug">
             {typedText}
             {!typingDone && (
-              <span className="inline-block w-0.5 h-4 ml-0.5 bg-indigo-500 align-middle animate-pulse" />
+              <span className="inline-block w-0.5 h-6 ml-1 bg-indigo-500 align-middle animate-pulse" />
             )}
           </p>
         </div>
