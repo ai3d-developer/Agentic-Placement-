@@ -7,18 +7,23 @@ interface IntroSplashScreenProps {
 
 export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWebsite }) => {
   const [countdown, setCountdown] = useState(2);
-  const [typedText, setTypedText] = useState('');
+  const [charCount, setCharCount] = useState(0);
   const [typingDone, setTypingDone] = useState(false);
 
-  const INTRO_MSG = "Hi! I'm your AI Agentic Placement Officer. 🎓";
+  // Message split into plain and gradient parts
+  // "Hi! I'm your " + "AI Agentic Placement Officer" + ". 🎓"
+  const PLAIN_PREFIX = "Hi! I'm your ";
+  const GRADIENT_WORD = "AI Agentic Placement Officer";
+  const PLAIN_SUFFIX = ". 🎓";
+  const FULL_MSG = PLAIN_PREFIX + GRADIENT_WORD + PLAIN_SUFFIX;
 
-  // Typewriter effect
+  // Typewriter: increment charCount
   useEffect(() => {
     let i = 0;
     const tw = setInterval(() => {
-      if (i < INTRO_MSG.length) {
-        setTypedText(INTRO_MSG.slice(0, i + 1));
+      if (i < FULL_MSG.length) {
         i++;
+        setCharCount(i);
       } else {
         clearInterval(tw);
         setTypingDone(true);
@@ -26,6 +31,15 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWeb
     }, 45);
     return () => clearInterval(tw);
   }, []);
+
+  // Compute visible portions of each part based on charCount
+  const visiblePrefix = FULL_MSG.slice(0, Math.min(charCount, PLAIN_PREFIX.length));
+  const visibleGradient = charCount > PLAIN_PREFIX.length
+    ? FULL_MSG.slice(PLAIN_PREFIX.length, Math.min(charCount, PLAIN_PREFIX.length + GRADIENT_WORD.length))
+    : '';
+  const visibleSuffix = charCount > PLAIN_PREFIX.length + GRADIENT_WORD.length
+    ? FULL_MSG.slice(PLAIN_PREFIX.length + GRADIENT_WORD.length, charCount)
+    : '';
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -138,8 +152,18 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWeb
           <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/40">
             <Bot className="w-7 h-7 text-white" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-indigo-700 tracking-tight text-left leading-snug">
-            {typedText}
+          <p className="text-xl sm:text-2xl font-black tracking-tight text-left leading-snug">
+            {/* Plain prefix */}
+            <span className="text-slate-900">{visiblePrefix}</span>
+            {/* Gradient colored portion */}
+            {visibleGradient && (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500">
+                {visibleGradient}
+              </span>
+            )}
+            {/* Plain suffix */}
+            <span className="text-slate-900">{visibleSuffix}</span>
+            {/* Blinking cursor */}
             {!typingDone && (
               <span className="inline-block w-0.5 h-6 ml-1 bg-indigo-500 align-middle animate-pulse" />
             )}
