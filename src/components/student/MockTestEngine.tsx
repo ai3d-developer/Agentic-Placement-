@@ -248,7 +248,7 @@ export const MockTestEngine: React.FC = () => {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash:free',
+          model: 'openrouter/free',
           messages: [
             { role: 'user', content: prompt }
           ],

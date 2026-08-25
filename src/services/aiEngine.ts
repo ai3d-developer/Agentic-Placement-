@@ -9,7 +9,7 @@ export const GEMINI_FALLBACK_MODELS = [
 ];
 
 export const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-export const OPENROUTER_PRIMARY_MODEL = 'google/gemini-2.5-flash:free';
+export const OPENROUTER_PRIMARY_MODEL = 'openrouter/free';
 
 export interface ParsedResumeProfileData {
   name: string;
@@ -44,9 +44,9 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
   const sysMsg = systemPrompt || 'You are PlacementOS AI, an expert Senior Enterprise SaaS AI Placement & Career Consultant for university students.';
   const modelsToTry = [
     OPENROUTER_PRIMARY_MODEL,
-    'google/gemini-2.5-flash:free',
-    'meta-llama/llama-3-8b-instruct:free',
-    'google/gemini-2.0-flash-001'
+    'openrouter/free',
+    'google/gemini-2.5-flash',
+    'google/gemini-2.5-flash-lite'
   ];
 
   for (const model of modelsToTry) {
