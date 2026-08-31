@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../ui/GlassCard';
-import { queryAICareerCoachAsync, OPENROUTER_PRIMARY_MODEL } from '../../services/aiEngine';
+import { queryAICareerCoachAsync, FREE_OPENROUTER_MODELS } from '../../services/aiEngine';
+const OPENROUTER_PRIMARY_MODEL = FREE_OPENROUTER_MODELS[0];
 import { BotMessageSquare, Send, Sparkles, User, Zap, Bot, RefreshCw } from 'lucide-react';
 
 interface ChatMessage {

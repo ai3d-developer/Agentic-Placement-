@@ -374,26 +374,34 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
   const sourcesList = ['All', 'Official Careers', 'LinkedIn', 'Naukri', 'Indeed', 'Glassdoor'];
   const locationsList = ['All', 'Worldwide / Remote', 'India', 'United States', 'Europe / UK', 'Asia-Pacific'];
 
+  // Strip portal prefix labels (e.g. "Google Careers:", "LinkedIn:", "Naukri:") — show only real job title
+  const cleanRoleTitle = (raw: string): string => {
+    if (!raw) return raw;
+    // Remove prefixes like "Google Careers:", "LinkedIn:", "Naukri:", "Indeed:", "Twitter/X:", "Glassdoor:", etc.
+    return raw.replace(/^[^:]{2,40}:\s*/i, '').trim();
+  };
+
   const getDisplayRoleName = (job: JobOpportunity, selectedSrc: string) => {
     const sourceToUse = selectedSrc !== 'All' ? selectedSrc : job.source;
     const sourceLower = sourceToUse.toLowerCase();
-    
+
     if (sourceLower.includes('linkedin')) {
-      return job.linkedInRoleName || job.role;
+      return cleanRoleTitle(job.linkedInRoleName || job.officialSiteRoleName || job.role);
     }
     if (sourceLower.includes('naukri')) {
-      return job.naukriRoleName || job.role;
+      return cleanRoleTitle(job.naukriRoleName || job.officialSiteRoleName || job.role);
     }
     if (sourceLower.includes('indeed')) {
-      return job.indeedRoleName || job.role;
+      return cleanRoleTitle(job.indeedRoleName || job.officialSiteRoleName || job.role);
     }
     if (sourceLower.includes('official') || sourceLower.includes('company') || sourceLower.includes('careers')) {
-      return job.officialSiteRoleName || job.role;
+      return cleanRoleTitle(job.officialSiteRoleName || job.role);
     }
     if (sourceLower.includes('glassdoor')) {
-      return job.socialMediaRoleName || job.role;
+      return cleanRoleTitle(job.socialMediaRoleName || job.officialSiteRoleName || job.role);
     }
-    return job.role;
+    // Default: show real title from company website, cleaned of any prefix
+    return cleanRoleTitle(job.officialSiteRoleName || job.role);
   };
 
   // Helper to extract clean corporate keywords

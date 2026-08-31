@@ -8,7 +8,8 @@ try {
 }
 
 /**
- * Extract clean readable text from uploaded PDF, TXT, or DOC file
+ * Extract clean readable text from uploaded PDF, TXT, or DOC file.
+ * Uses transform coordinates to properly reconstruct word spacing.
  */
 export async function extractTextFromPdfFile(file: File): Promise<string> {
   if (file.name.toLowerCase().endsWith('.txt') || file.type === 'text/plain') {
@@ -28,10 +29,27 @@ export async function extractTextFromPdfFile(file: File): Promise<string> {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageStrings = textContent.items
-        .map((item: any) => (item.str || ''))
-        .filter((str: string) => str.trim().length > 0);
-      fullText += pageStrings.join(' ') + '\n';
+
+      let lastX = 0;
+      let lastWidth = 0;
+      const pageTokens: string[] = [];
+
+      (textContent.items as any[]).forEach((item: any) => {
+        const str = item.str || '';
+        if (!str.trim()) return;
+
+        const x = item.transform ? item.transform[4] : 0;
+        // If the next item starts more than 2px away from where last item ended, insert a space
+        const gap = x - (lastX + lastWidth);
+        if (pageTokens.length > 0 && gap > 2) {
+          pageTokens.push(' ');
+        }
+        pageTokens.push(str);
+        lastX = x;
+        lastWidth = item.width || str.length * 5;
+      });
+
+      fullText += pageTokens.join('') + '\n';
     }
 
     if (fullText.trim().length > 20) {
@@ -72,4 +90,3 @@ export async function extractTextFromPdfFile(file: File): Promise<string> {
 
   return await file.text();
 }
-

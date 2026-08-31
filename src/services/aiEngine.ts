@@ -1,15 +1,16 @@
 import { UserProfile, ResumeAnalysisResult, SkillGapAnalysis, InterviewEvaluationReport } from '../types/index';
 
 export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-export const GEMINI_PRIMARY_MODEL = 'gemini-flash-latest';
-export const GEMINI_FALLBACK_MODELS = [
-  'gemini-flash-latest',
-  'gemini-2.0-flash-lite',
-  'gemini-pro-latest'
-];
-
 export const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-export const OPENROUTER_PRIMARY_MODEL = 'openrouter/free';
+
+// Free OpenRouter models — tried in order until one succeeds
+export const FREE_OPENROUTER_MODELS = [
+  'google/gemma-4-26b-a4b-it:free',                    // Primary ✅
+  'google/gemma-4-31b-it:free',                         // Gemma 4 31B
+  'nvidia/llama-nemotron-rerank-vl-1b-v2:free',         // Nemotron Rerank VL
+  'openrouter/free',                                    // Auto-router
+  'liquid/lfm-2.5-2.6b:free',                          // Liquid LFM 2.5
+];
 
 export interface ParsedResumeProfileData {
   name: string;
@@ -31,34 +32,28 @@ export interface ParsedResumeProfileData {
 }
 
 /**
- * Google Gemini AI Engine Call (via OpenRouter API with google/gemini-2.5-flash:free)
+ * Generic OpenRouter AI call — used for chat, coaching, etc.
  */
 export async function callGeminiAI(userPrompt: string, systemPrompt?: string): Promise<string> {
   return callOpenRouterAI(userPrompt, systemPrompt);
 }
 
-/**
- * OpenRouter Fallback AI Engine Call
- */
-export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string): Promise<string> {
+export async function callOpenRouterAI(
+  userPrompt: string,
+  systemPrompt?: string,
+  maxTokens = 1200
+): Promise<string> {
   const sysMsg = systemPrompt || 'You are PlacementOS AI, an expert Senior Enterprise SaaS AI Placement & Career Consultant for university students.';
-  const modelsToTry = [
-    OPENROUTER_PRIMARY_MODEL,
-    'openrouter/free',
-    'google/gemini-2.5-flash',
-    'google/gemini-2.5-flash-lite'
-  ];
+  const localKey = localStorage.getItem('VITE_OPENROUTER_API_KEY');
+  const apiKey = localKey || OPENROUTER_API_KEY;
 
-  for (const model of modelsToTry) {
+  for (const model of FREE_OPENROUTER_MODELS) {
     try {
-      const localKey = localStorage.getItem('VITE_OPENROUTER_API_KEY');
-      const apiKey = localKey || OPENROUTER_API_KEY;
-      const url = apiKey 
-        ? 'https://openrouter.ai/api/v1/chat/completions' 
+      const url = apiKey
+        ? 'https://openrouter.ai/api/v1/chat/completions'
         : (import.meta.env.DEV ? '/api/v1/ai/chat' : 'https://placement-backend-z8c5.onrender.com/api/v1/ai/chat');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (apiKey) {
         headers['Authorization'] = `Bearer ${apiKey}`;
         headers['HTTP-Referer'] = 'https://placementos.ai';
@@ -75,7 +70,58 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
             { role: 'user', content: userPrompt }
           ],
           temperature: 0.3,
-          max_tokens: 1000
+          max_tokens: maxTokens
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content && content.trim()) return content.trim();
+      } else {
+        const errJson = await response.json().catch(() => null);
+        console.warn(`OpenRouter [${model}] failed ${response.status}:`, errJson);
+      }
+    } catch (err) {
+      console.warn(`OpenRouter [${model}] error:`, err);
+    }
+  }
+  return '';
+}
+
+/**
+ * Dedicated resume extraction call — uses higher token limit & low temperature for accurate JSON
+ */
+async function callOpenRouterForResume(userPrompt: string): Promise<string> {
+  const sysMsg = 'You are a JSON Resume Parser. Extract structured data from resume text. Output ONLY valid JSON with no markdown, no explanation, no extra text.';
+  const localKey = localStorage.getItem('VITE_OPENROUTER_API_KEY');
+  const apiKey = localKey || OPENROUTER_API_KEY;
+
+  for (const model of FREE_OPENROUTER_MODELS) {
+    try {
+      const url = apiKey
+        ? 'https://openrouter.ai/api/v1/chat/completions'
+        : (import.meta.env.DEV ? '/api/v1/ai/chat' : 'https://placement-backend-z8c5.onrender.com/api/v1/ai/chat');
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        headers['HTTP-Referer'] = 'https://placementos.ai';
+        headers['X-Title'] = 'PlacementOS AI Resume Parser';
+      }
+
+      console.log(`[Resume AI] Trying model: ${model}`);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: sysMsg },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.1,   // Very low — deterministic JSON output
+          max_tokens: 4096    // Enough for full profile JSON
         })
       });
 
@@ -83,17 +129,17 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
         const data = await response.json();
         const content = data.choices?.[0]?.message?.content;
         if (content && content.trim()) {
+          console.log(`[Resume AI] Success with model: ${model}`);
           return content.trim();
         }
       } else {
         const errJson = await response.json().catch(() => null);
-        console.warn(`OpenRouter model ${model} failed status ${response.status}:`, errJson);
+        console.warn(`[Resume AI] Model ${model} failed ${response.status}:`, errJson);
       }
     } catch (err) {
-      console.warn(`OpenRouter model ${model} error:`, err);
+      console.warn(`[Resume AI] Model ${model} error:`, err);
     }
   }
-
   return '';
 }
 
@@ -103,15 +149,21 @@ export async function callOpenRouterAI(userPrompt: string, systemPrompt?: string
 export async function parseResumeTextToProfile(rawText: string, currentProfile: UserProfile): Promise<ParsedResumeProfileData> {
   const jsonPrompt = `Extract complete student profile information from the following resume text.
 
+IMPORTANT INSTRUCTIONS:
+- Extract ALL technical skills mentioned anywhere in the resume (Skills section, Projects, Experience, Certifications).
+- Include domain-specific tools: for ECE/EEE include PLC, SCADA, MATLAB, Arduino IDE, Circuit Analysis, Control Systems, IoT, WPL, Embedded Systems, etc.
+- Include software tools, programming languages, hardware tools, simulation software.
+- Do NOT miss any skill even if mentioned once in a project description.
+
 Respond with ONLY valid JSON (no markdown ticks, no extra commentary) matching this exact schema:
 {
   "name": "Student Full Name",
   "email": "email@example.com",
   "phone": "+91 9876543210",
   "college": "College Name",
-  "department": "Engineering Department (e.g. Electronics & Communication, Computer Science, Mechanical, Civil, Information Technology)",
+  "department": "Engineering Department (e.g. Electronics & Communication, Computer Science, Mechanical, Civil, Information Technology, EEE)",
   "cgpa": 8.5,
-  "technicalSkills": ["Skill1", "Skill2", "Skill3"],
+  "technicalSkills": ["Every skill, tool, software, language, framework found in the resume"],
   "projects": [{"title": "Project Title", "description": "Short summary", "techStack": ["Skill1", "Skill2"]}],
   "certifications": [{"title": "Cert Title", "issuer": "Issuer Org", "year": 2025}],
   "github": "https://github.com/username (if found, otherwise empty)",
@@ -124,10 +176,10 @@ Respond with ONLY valid JSON (no markdown ticks, no extra commentary) matching t
 }
 
 RESUME TEXT CONTENT:
-${rawText.slice(0, 3500)}`;
+${rawText.slice(0, 6000)}`;
 
   try {
-    const aiResponse = await callGeminiAI(jsonPrompt, "You are a JSON Resume Extractor Engine. Output raw JSON only.");
+    const aiResponse = await callOpenRouterForResume(jsonPrompt);
     if (aiResponse) {
       // Find JSON block enclosed in { ... }
       const match = aiResponse.match(/\{[\s\S]*\}/);
@@ -227,23 +279,92 @@ function fallbackLocalResumeParser(rawText: string, currentProfile: UserProfile)
     department = 'Civil Engineering';
   }
 
-  // Extract Skills from 60+ known technologies
+  // --- Dynamic Skill Extraction (No hardcoded list) ---
+  // Step 1: Find the Skills / Technical Skills / Core Competencies section in the resume
+  // and extract exactly what the candidate has written.
   const detectedSkills: string[] = [];
-  const knownSkills = [
-    'Python', 'Java', 'C++', 'C', 'C#', 'JavaScript', 'TypeScript', 'React', 'Angular', 'Vue',
-    'Node.js', 'Express', 'HTML', 'CSS', 'Tailwind', 'Bootstrap', 'SQL', 'MySQL', 'PostgreSQL', 'MongoDB',
-    'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Git', 'GitHub', 'Linux', 'REST API', 'GraphQL',
-    'Data Structures', 'Algorithms', 'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Scikit-learn',
-    'Pandas', 'NumPy', 'OpenCV', 'NLP', 'Power BI', 'Tableau', 'Embedded Systems', 'Microcontrollers',
-    'Arduino', 'Raspberry Pi', 'RTOS', 'VLSI', 'Verilog', 'ARM', 'AutoCAD', 'SolidWorks', 'ANSYS', 'FEA',
-    'Thermodynamics', 'Cyber Security', 'Penetration Testing', 'Figma', 'Problem Solving', 'Aptitude'
-  ];
 
-  knownSkills.forEach(sk => {
-    const reg = new RegExp(`\\b${sk.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-    if (reg.test(rawText)) {
-      detectedSkills.push(sk);
+  const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  // Section heading patterns that indicate a skills section
+  const skillSectionHeadings = /^(technical\s*skills?|core\s*(competencies|skills?)|skills?(\/tools?)?|tools?\s*(&|and)?\s*technologies|technologies|programming\s*languages?|languages?\s*(&|and)?\s*frameworks?|key\s*skills?|professional\s*skills?|software\s*skills?|hardware\s*skills?|areas?\s*of\s*expertise|expertise|proficiencies|stack|tech\s*stack)\s*[:\-]?$/i;
+
+  // Delimiters that separate skill items within a line
+  const splitDelimiters = /[,|•·◦▪▸►\t\u2022\u2023\u25AA\u25CF]+/;
+
+  let inSkillSection = false;
+  let sectionEndCount = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Detect start of a known skills section
+    if (skillSectionHeadings.test(line)) {
+      inSkillSection = true;
+      sectionEndCount = 0;
+      continue;
     }
+
+    // Stop collecting when we hit another major section heading
+    if (inSkillSection) {
+      const isMajorHeading = /^(education|experience|projects?|internship|certification|awards?|achievements?|extra.?curricular|activities|summary|objective|declaration|hobbies|references?|publications?|research|work\s*history)\s*[:\-]?$/i.test(line);
+      if (isMajorHeading) {
+        inSkillSection = false;
+        continue;
+      }
+      // If 4+ blank-ish lines (separator lines) pass without valid tokens, exit section
+      if (line.length < 2) {
+        sectionEndCount++;
+        if (sectionEndCount > 4) inSkillSection = false;
+        continue;
+      }
+      sectionEndCount = 0;
+
+      // Split line by common delimiters and collect each token as a skill
+      const parts = line.split(splitDelimiters);
+      parts.forEach(part => {
+        const cleaned = part.replace(/^[-*•◦▪►▸:]+\s*/, '').trim();
+        // Accept as skill if it is 1-50 chars and contains at least one letter
+        if (cleaned.length >= 1 && cleaned.length <= 50 && /[a-zA-Z]/.test(cleaned)) {
+          detectedSkills.push(cleaned);
+        }
+      });
+    }
+  }
+
+  // Step 2: If skills section not found / too few skills, also scan inline "Technologies: X, Y, Z" patterns
+  if (detectedSkills.length < 3) {
+    const inlineMatches = rawText.matchAll(/(?:technologies?|tools?|skills?|tech\s*stack|languages?|frameworks?|software)\s*[:\-]\s*([^\n]{3,200})/gi);
+    for (const m of inlineMatches) {
+      const parts = m[1].split(splitDelimiters);
+      parts.forEach(part => {
+        const cleaned = part.replace(/^[-*•:]+\s*/, '').trim();
+        if (cleaned.length >= 1 && cleaned.length <= 50 && /[a-zA-Z]/.test(cleaned)) {
+          detectedSkills.push(cleaned);
+        }
+      });
+    }
+  }
+
+  // Step 3: Also pull tech stack tokens from project "Tech Stack:" or "Tools:" sub-lines
+  const techStackMatches = rawText.matchAll(/(?:tech\s*stack|built\s*with|tools?\s*used|technologies?\s*used)\s*[:\-]\s*([^\n]{3,200})/gi);
+  for (const m of techStackMatches) {
+    const parts = m[1].split(splitDelimiters);
+    parts.forEach(part => {
+      const cleaned = part.replace(/^[-*•:]+\s*/, '').trim();
+      if (cleaned.length >= 1 && cleaned.length <= 50 && /[a-zA-Z]/.test(cleaned)) {
+        detectedSkills.push(cleaned);
+      }
+    });
+  }
+
+  // Deduplicate (case-insensitive) while preserving original casing from resume
+  const seen = new Set<string>();
+  const uniqueSkills = detectedSkills.filter(sk => {
+    const key = sk.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
 
   // Extract CGPA
@@ -261,7 +382,7 @@ function fallbackLocalResumeParser(rawText: string, currentProfile: UserProfile)
         projectList.push({
           title,
           description: `Extracted project module: ${title}`,
-          techStack: detectedSkills.slice(idx * 2, idx * 2 + 3)
+          techStack: uniqueSkills.slice(idx * 2, idx * 2 + 3)
         });
       }
     });
@@ -269,8 +390,8 @@ function fallbackLocalResumeParser(rawText: string, currentProfile: UserProfile)
   if (projectList.length === 0) {
     projectList.push({
       title: `${department} Academic Capstone Project`,
-      description: `Implementation of domain-specific project solutions using ${detectedSkills.slice(0, 2).join(' & ') || 'Core Technologies'}.`,
-      techStack: detectedSkills.slice(0, 3)
+      description: `Implementation of domain-specific project solutions using ${uniqueSkills.slice(0, 2).join(' & ') || 'Core Technologies'}.`,
+      techStack: uniqueSkills.slice(0, 3)
     });
   }
 
@@ -281,7 +402,7 @@ function fallbackLocalResumeParser(rawText: string, currentProfile: UserProfile)
     college: currentProfile.college || 'Engineering College',
     department,
     cgpa,
-    technicalSkills: Array.from(new Set(detectedSkills)),
+    technicalSkills: uniqueSkills,
     projects: projectList,
     certifications: [
       { title: `${department} Technical Proficiency Certification`, issuer: 'Industry Partner', year: 2025 }

@@ -168,22 +168,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToIn
               <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <div className="text-xs">
-                  <div className="font-bold text-slate-200">Firebase Firestore Integration</div>
-                  <div className="text-slate-400 text-[11px]">Real-time cloud database synchronization</div>
+                  <div className="font-bold text-slate-200">AI Resume Analyser</div>
+                  <div className="text-slate-400 text-[11px]">Smart ATS scoring & skill gap detection</div>
                 </div>
               </div>
               <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
                 <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                 <div className="text-xs">
-                  <div className="font-bold text-slate-200">n8n Automation Engine</div>
-                  <div className="text-slate-400 text-[11px]">Daily job fetching & notifications at 12 PM</div>
+                  <div className="font-bold text-slate-200">AI Mock Interview & Aptitude Tests</div>
+                  <div className="text-slate-400 text-[11px]">Practice with instant AI-powered feedback</div>
                 </div>
               </div>
               <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
                 <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                 <div className="text-xs">
-                  <div className="font-bold text-slate-200">6 Multi-Role System</div>
-                  <div className="text-slate-400 text-[11px]">Student, Officer, HOD, Faculty, HR & Admin</div>
+                  <div className="font-bold text-slate-200">Live Job Matching & Drive Alerts</div>
+                  <div className="text-slate-400 text-[11px]">Auto-matched jobs & placement drive notifications</div>
                 </div>
               </div>
             </div>
