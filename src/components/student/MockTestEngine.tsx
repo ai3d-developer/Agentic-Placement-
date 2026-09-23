@@ -210,7 +210,7 @@ export const MockTestEngine: React.FC = () => {
 
   const handleStartTest = async (test: MockTest) => {
     setIsGeneratingAI(true);
-    setGenerationProgress(`Connecting to OpenRouter Gemini AI to compile dynamic ${test.company} assessment...`);
+    setGenerationProgress(`Connecting to PlacementOS AI Engine to compile dynamic ${test.company} assessment...`);
     
     try {
       const isCoding = isCodingSkill(test.company);

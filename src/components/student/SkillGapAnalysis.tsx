@@ -658,7 +658,7 @@ Provide the response in the following exact JSON format (no markdown code blocks
               {isLoadingAI && (
                 <div className="p-8 text-center space-y-3">
                   <RefreshCw className="w-8 h-8 text-indigo-600 dark:text-cyan-400 animate-spin mx-auto" />
-                  <p className="text-xs text-slate-500">Contacting Gemini AI models via OpenRouter to compile interview sheets & MCQs...</p>
+                  <p className="text-xs text-slate-500">Contacting PlacementOS AI Intelligence Engine to compile interview sheets & MCQs...</p>
                 </div>
               )}
 
