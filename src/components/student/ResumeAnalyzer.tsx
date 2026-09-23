@@ -10,7 +10,8 @@ import { extractTextFromPdfFile } from '../../utils/pdfExtractor';
 import { saveUploadedResumeDataToFirestore } from '../../services/firebase';
 import { ApplicationConfirmationModal } from '../ui/ApplicationConfirmationModal';
 import { CongratulationsJobsModal } from '../ui/CongratulationsJobsModal';
-import { FileText, Upload, Sparkles, Briefcase, ExternalLink, UserCheck, CheckCircle2, Award, FolderGit2, Check, ArrowRight, Clock, Users } from 'lucide-react';
+import { AIResumeBuilder } from './AIResumeBuilder';
+import { FileText, Upload, Sparkles, Briefcase, ExternalLink, UserCheck, CheckCircle2, Award, FolderGit2, Check, ArrowRight, Clock, Users, Layout, ShieldCheck } from 'lucide-react';
 
 interface ResumeAnalyzerProps {
   onNavigate?: (tab: string) => void;
@@ -26,7 +27,7 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
     `Engineering Candidate\nDepartment: ${profile.department || 'Engineering'}\nSkills: ${(profile.technicalSkills || []).join(', ')}`
   );
   const [analysis, setAnalysis] = useState<ResumeAnalysisResult | null>(analyzeResumeText(resumeText, profile));
-  const [activeTab, setActiveTab] = useState<'review' | 'matching_jobs' | 'ats' | 'cover_letter'>('review');
+  const [activeTab, setActiveTab] = useState<'review' | 'matching_jobs' | 'ats' | 'cover_letter' | 'builder'>('review');
   const [lastAutoFilledDept, setLastAutoFilledDept] = useState<string | null>(profile.department || null);
 
   const isUnparsed = (!profile.technicalSkills || profile.technicalSkills.length === 0) && !profile.resumeFileName;
@@ -188,7 +189,47 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
           >
             Cover Letter
           </button>
+          <button
+            onClick={() => setActiveTab('builder')}
+            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeTab === 'builder'
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Layout className="w-3.5 h-3.5 text-pink-400" />
+            <span>AI Resume Builder</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-extrabold border border-amber-400/30">Templates</span>
+          </button>
         </div>
+      </div>
+
+      {/* AI Resume Builder Quick Banner */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-900/60 via-purple-900/50 to-pink-900/40 border border-indigo-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 text-white flex items-center justify-center shrink-0 shadow-md">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-sm font-black text-white flex items-center gap-2">
+              <span>AI Resume Builder & Verified PlacementOS Seal</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/30">
+                Verified by AI Agentic PlacementOS
+              </span>
+            </div>
+            <p className="text-xs text-indigo-200 mt-0.5">
+              Choose from ATS-optimized templates (Modern Tech, Classic Harvard, Minimalist, Creative Designer), customize live, and export official verified PDF!
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setActiveTab('builder')}
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-95 text-white text-xs font-black shrink-0 transition-all shadow-lg flex items-center gap-1.5"
+        >
+          <Layout className="w-4 h-4" />
+          <span>Launch Resume Builder</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* Profile Updated Alert Banner */}
@@ -562,6 +603,11 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
             {analysis.sampleCoverLetter}
           </pre>
         </GlassCard>
+      )}
+
+      {/* AI RESUME BUILDER WITH ATS TEMPLATES & VERIFIED SEAL */}
+      {activeTab === 'builder' && (
+        <AIResumeBuilder onBack={() => setActiveTab('review')} />
       )}
 
       {/* Application Confirmation Modal */}

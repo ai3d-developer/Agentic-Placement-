@@ -553,10 +553,12 @@ export function generateSkillGapAnalysis(companyName: string, profile: UserProfi
     !userSkillsLower.some(us => us.includes(exp.toLowerCase()) || exp.toLowerCase().includes(us))
   );
 
-  // Realistic overall match score calculation
+  // Realistic overall match score calculation strictly based on candidate's skills vs expectations
   const totalWeight = companyExpectations.length;
-  const matchRatio = totalWeight > 0 ? (strongSkills.length / totalWeight) : 0.5;
-  const overallMatch = Math.min(98, Math.max(30, Math.round(70 + matchRatio * 28 - missingSkills.length * 3)));
+  const matchRatio = totalWeight > 0 ? (strongSkills.length / totalWeight) : 0;
+  const overallMatch = totalWeight > 0 
+    ? Math.min(98, Math.max(25, Math.round(matchRatio * 90 + (strongSkills.length > 0 ? 8 : 0))))
+    : 30;
 
   const topSkillsSummary = userSkills.slice(0, 4).join(', ');
   const targetFocusSkill = missingSkills[0] || 'System Optimization';

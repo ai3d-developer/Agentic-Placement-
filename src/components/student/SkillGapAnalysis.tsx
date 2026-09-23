@@ -44,7 +44,19 @@ export const SkillGapAnalysis: React.FC = () => {
     const list = getDynamicCompanies();
     return list[0] || 'Google';
   });
+  const [analyzedCompanies, setAnalyzedCompanies] = useState<string[]>(() => {
+    const list = getDynamicCompanies();
+    return list.length > 0 ? [list[0]] : ['Google'];
+  });
   const [testScores, setTestScores] = useState<Record<string, number>>({});
+
+  const handleAnalyzeCompany = (comp: string) => {
+    setSelectedCompany(comp);
+    if (!analyzedCompanies.includes(comp)) {
+      setAnalyzedCompanies(prev => [...prev, comp]);
+      addNotification(`⚡ AI Skill Gap Diagnostic Completed for ${comp}! Roadmap and Missing Competencies generated.`);
+    }
+  };
 
   // Study Resource Modal State
   const [resourceModalSkill, setResourceModalSkill] = useState<string | null>(null);
@@ -312,17 +324,25 @@ Provide the response in the following exact JSON format (no markdown code blocks
         {/* Company Selector Buttons */}
         {!isUnparsed && (
           <div className="flex flex-wrap gap-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-xl">
-            {companiesList.map(c => (
-              <button
-                key={c}
-                onClick={() => setSelectedCompany(c)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  selectedCompany === c ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
+            {companiesList.map(c => {
+              const isAnalyzed = analyzedCompanies.includes(c);
+              return (
+                <button
+                  key={c}
+                  onClick={() => handleAnalyzeCompany(c)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    selectedCompany === c
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>{c}</span>
+                  {isAnalyzed && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -379,51 +399,114 @@ Provide the response in the following exact JSON format (no markdown code blocks
                   Target Recruiter Match & Application Advisor
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Calculated dynamically from your technical skills match and cleared Skill Gap Test performance.
+                  Calculated dynamically upon running AI Skill Gap Diagnostic against hiring benchmarks.
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recommendations.map(rec => (
-                <div key={rec.company} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3">
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-955 dark:text-slate-100">{rec.company}</span>
-                      <span className="text-lg font-black text-indigo-600 dark:text-cyan-400">{rec.readinessScore}% Match</span>
+              {recommendations.map(rec => {
+                const isAnalyzed = analyzedCompanies.includes(rec.company);
+                const isSelected = selectedCompany === rec.company;
+
+                if (!isAnalyzed) {
+                  return (
+                    <div
+                      key={rec.company}
+                      className="p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-950/40 border border-dashed border-slate-300 dark:border-slate-800 flex flex-col justify-between space-y-3 hover:border-indigo-400 transition-all group"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{rec.company}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+                            Awaiting Diagnostic
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">
+                          Run AI Skill Gap Diagnostic for {rec.company} to analyze missing competencies, realistic match %, and interview roadmap.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => handleAnalyzeCompany(rec.company)}
+                        className="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow flex items-center justify-center gap-1.5 group-hover:scale-[1.02]"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Analyze Skill Gap ({rec.company})</span>
+                      </button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={rec.company}
+                    className={`p-4 rounded-2xl border flex flex-col justify-between space-y-3 transition-all ${
+                      isSelected
+                        ? 'bg-indigo-50/40 dark:bg-indigo-950/20 border-indigo-500/50 shadow-md ring-1 ring-indigo-500/30'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'
+                    }`}
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-black text-slate-900 dark:text-white">{rec.company}</span>
+                          {isSelected && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500 text-white font-extrabold">Active</span>
+                          )}
+                        </div>
+                        <span className="text-lg font-black text-indigo-600 dark:text-cyan-400">{rec.readinessScore}% Match</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                        <span className={`text-[9px] px-2 py-0.5 rounded font-extrabold border ${rec.statusColor}`}>
+                          {rec.statusText}
+                        </span>
+                        {rec.averageTestScore !== null && (
+                          <span className="text-[9px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-extrabold border border-indigo-500/20">
+                            Avg Test: {rec.averageTestScore}%
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                      <span className={`text-[9px] px-2 py-0.5 rounded font-extrabold border ${rec.statusColor}`}>
-                        {rec.statusText}
-                      </span>
-                      {rec.averageTestScore !== null && (
-                        <span className="text-[9px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-extrabold border border-indigo-500/20">
-                          Avg Test: {rec.averageTestScore}%
+                    <div className="text-[11px] text-slate-500 leading-relaxed">
+                      {rec.status === 'ready' && (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          🚀 High readiness! You match {rec.readinessScore}%. Recommended to apply now on the Verified Jobs portal.
+                        </span>
+                      )}
+                      {rec.status === 'prep' && (
+                        <span>
+                          ⚠️ You match {rec.readinessScore}%. Complete the learning roadmap for the remaining {rec.missingCount} missing skills to increase your chances.
+                        </span>
+                      )}
+                      {rec.status === 'gap' && (
+                        <span className="text-rose-500 font-medium">
+                          🛑 Take the {rec.company} skill gap tests (Basic to Advanced) to calculate full readiness parameters.
                         </span>
                       )}
                     </div>
-                  </div>
 
-                  <div className="text-[11px] text-slate-500 leading-relaxed">
-                    {rec.status === 'ready' && (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                        🚀 High readiness! You have matching profile credentials. Recommended to apply now on the Verified Jobs portal.
-                      </span>
-                    )}
-                    {rec.status === 'prep' && (
-                      <span>
-                        ⚠️ You match {rec.readinessScore}%. Complete the learning roadmap for the remaining {rec.missingCount} missing skills to increase your chances.
-                      </span>
-                    )}
-                    {rec.status === 'gap' && (
-                      <span className="text-rose-500 font-medium">
-                        🛑 Take the {rec.company} skill gap tests (Basic to Advanced) to calculate full readiness parameters.
-                      </span>
-                    )}
+                    <div className="pt-1">
+                      {isSelected ? (
+                        <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>Roadmap & Missing Skills displayed below</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleAnalyzeCompany(rec.company)}
+                          className="w-full py-1.5 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                        >
+                          <span>Switch to {rec.company} Roadmap</span>
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </GlassCard>
 
