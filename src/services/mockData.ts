@@ -107,8 +107,8 @@ export const sampleJobs: JobOpportunity[] = [
     indeedRoleName: 'Indeed: Associate Unity 3D Game Engineer',
     socialMediaRoleName: 'Twitter/X: Ubisoft India Unity 3D Hiring Drive',
     description: 'Design and optimize 3D gameplay systems, custom shaders, and real-time graphics rendering engines for AAA game titles using Unity and C#.',
-    department: 'Electrical & Electronics Engineering',
-    skillsRequired: ['UNITY', 'BLENDER', 'GAME DEVELOPMENT', '3D ARTIST', 'C#', 'C++'],
+    department: 'Computer Science & Engineering',
+    skillsRequired: ['Unity', 'Blender', 'Game Development', '3D Artist', 'C#', 'C++'],
     salary: '₹14,50,000 / yr',
     location: 'Pune / Mumbai (Hybrid)',
     experience: 'Fresher (2026 Batch)',
@@ -140,8 +140,8 @@ export const sampleJobs: JobOpportunity[] = [
     indeedRoleName: 'Indeed: Associate 3D Modeler - Electronic Arts',
     socialMediaRoleName: 'Glassdoor: EA Games 3D Artist Opening 2026',
     description: 'Model high-fidelity 3D game assets in Blender/Maya and integrate them into Unity interactive game environments with custom texture mapping.',
-    department: 'Electrical & Electronics Engineering',
-    skillsRequired: ['UNITY', 'BLENDER', '3D ARTIST', 'GAME DEVELOPMENT', 'Maya', 'Shader Programming'],
+    department: 'Computer Science & Engineering',
+    skillsRequired: ['Unity', 'Blender', '3D Artist', 'Game Development', 'Maya', 'Shader Programming'],
     salary: '₹16,50,000 / yr',
     location: 'Hyderabad (EA India)',
     experience: 'Fresher (0-1 yr)',
@@ -173,8 +173,8 @@ export const sampleJobs: JobOpportunity[] = [
     indeedRoleName: 'Indeed: C++ Game Physics Developer - Rockstar',
     socialMediaRoleName: 'Twitter/X: Rockstar Games India Graphics Tech Hiring',
     description: 'Implement complex rigid-body physics simulation algorithms, particle effects, and HLSL/GLSL shader pipelines for next-gen open world engines.',
-    department: 'Electrical & Electronics Engineering',
-    skillsRequired: ['UNITY', 'BLENDER', '3D ARTIST', 'GAME DEVELOPMENT', 'C++'],
+    department: 'Computer Science & Engineering',
+    skillsRequired: ['Unity', 'Blender', '3D Artist', 'Game Development', 'C++'],
     salary: '₹18,00,000 / yr',
     location: 'Bengaluru (Rockstar India)',
     experience: 'Fresher (0-2 yrs)',
@@ -701,131 +701,531 @@ export const sampleJobs: JobOpportunity[] = [
   }
 ];
 
-export const generateSkillMatchedJobsForStudent = (profile: UserProfile): JobOpportunity[] => {
-  const skills = profile.technicalSkills || [];
-  const projects = profile.projects || [];
-  const certs = profile.certifications || [];
+// ─── Department detector ──────────────────────────────────────────────────────
+export type DeptKey = 'CSE' | 'EEE' | 'MECH' | 'CIVIL' | 'ECE' | 'DATA_AI' | 'GAME_DEV' | 'MBA' | 'UNKNOWN';
 
-  // Combine text from skills, projects, and certifications for deep matching
-  const allResumeText = [
-    ...skills,
-    ...projects.map(p => `${p.title} ${p.description} ${(p.techStack || []).join(' ')}`),
-    ...certs.map(c => `${c.title} ${c.issuer}`),
-    profile.department || ''
-  ].join(' ').toLowerCase();
-
-  if (!allResumeText.trim()) return [];
-
-  const customJobs: JobOpportunity[] = [];
-
-  // 1. Deep Match: Game Development, Unity, Blender, 3D Artist, AR/VR, Shaders
-  if (allResumeText.includes('unity') || allResumeText.includes('blender') || allResumeText.includes('game') || allResumeText.includes('3d') || allResumeText.includes('artist') || allResumeText.includes('maya')) {
-    customJobs.push({
-      id: 'job-custom-game-1',
-      company: 'Ubisoft Entertainment',
-      role: 'Unity 3D Developer & Game Graphics Engineer',
-      department: profile.department || 'Electrical & Electronics Engineering',
-      skillsRequired: skills.length > 0 ? skills : ['UNITY', 'BLENDER', 'GAME DEVELOPMENT', '3D ARTIST'],
-      salary: '₹14,50,000 / yr',
-      location: 'Pune / Mumbai (Hybrid)',
-      experience: 'Fresher (2026 Batch)',
-      education: 'B.E / B.Tech / Any Graduate',
-      minCgpa: 6.5,
-      maxBacklogs: 0,
-      lastDate: '2026-09-25',
-      applyLink: getCompanyPortalDeepLink('Ubisoft Entertainment', 'Unity 3D Developer & Game Graphics Engineer', 'LinkedIn'),
-      source: 'LinkedIn',
-      isInternship: false,
-      postedDate: 'Posted 1h ago via LinkedIn',
-      verifiedDate: 'Verified Today',
-      status: 'Verified',
-      matchPercentage: 100,
-      missingSkills: [],
-      eligible: true,
-      estimatedInterviewProbability: 96
-    });
-
-    customJobs.push({
-      id: 'job-custom-game-2',
-      company: 'EA Games (Electronic Arts)',
-      role: 'Associate 3D Modeler & Unity Interactive Developer',
-      department: profile.department || 'Electrical & Electronics Engineering',
-      skillsRequired: skills.length > 0 ? skills : ['UNITY', 'BLENDER', '3D ARTIST', 'GAME DEVELOPMENT'],
-      salary: '₹16,00,000 / yr',
-      location: 'Hyderabad (EA India)',
-      experience: 'Fresher (0-1 yr)',
-      education: 'B.Tech / B.E / B.Sc',
-      minCgpa: 7.0,
-      maxBacklogs: 0,
-      lastDate: '2026-09-28',
-      applyLink: getCompanyPortalDeepLink('EA Games (Electronic Arts)', 'Associate 3D Modeler & Unity Interactive Developer', 'Naukri'),
-      source: 'Naukri',
-      isInternship: false,
-      postedDate: 'Posted 3h ago via Naukri',
-      verifiedDate: 'Verified Today',
-      status: 'Verified',
-      matchPercentage: 98,
-      missingSkills: [],
-      eligible: true,
-      estimatedInterviewProbability: 94
-    });
-
-    customJobs.push({
-      id: 'job-custom-game-3',
-      company: 'Rockstar Games India',
-      role: 'Game Physics & Shader Renderer Developer',
-      department: profile.department || 'Electrical & Electronics Engineering',
-      skillsRequired: skills.length > 0 ? skills : ['UNITY', 'BLENDER', '3D ARTIST', 'C++'],
-      salary: '₹18,00,000 / yr',
-      location: 'Bengaluru (Rockstar India)',
-      experience: 'Fresher (0-2 yrs)',
-      education: 'B.E / B.Tech / MCA',
-      minCgpa: 7.0,
-      maxBacklogs: 0,
-      lastDate: '2026-09-30',
-      applyLink: getCompanyPortalDeepLink('Rockstar Games India', 'Game Physics & Shader Renderer Developer', 'Official Careers'),
-      source: 'Official Careers',
-      isInternship: false,
-      postedDate: 'Posted 4h ago',
-      verifiedDate: 'Verified Today',
-      status: 'Verified',
-      matchPercentage: 95,
-      missingSkills: [],
-      eligible: true,
-      estimatedInterviewProbability: 92
-    });
-  }
-
-  // 2. Deep Match: Electrical & Electronics Engineering (EEE/ECE, Power Systems, Microcontrollers, Embedded)
-  if (allResumeText.includes('electrical') || allResumeText.includes('electronics') || allResumeText.includes('eee') || allResumeText.includes('ece') || allResumeText.includes('embedded') || allResumeText.includes('circuit') || allResumeText.includes('power')) {
-    customJobs.push({
-      id: 'job-custom-eee-1',
-      company: 'Schneider Electric',
-      role: 'Electrical & Power Automation Control Engineer GET',
-      department: profile.department || 'Electrical & Electronics Engineering',
-      skillsRequired: ['Electrical Power Systems', 'PLC Programming', 'MATLAB', 'Embedded Systems', 'Circuit Design'],
-      salary: '₹12,50,000 / yr',
-      location: 'Bengaluru / Chennai',
-      experience: 'Fresher (GET 2026)',
-      education: 'B.E / B.Tech EEE, ECE',
-      minCgpa: 7.0,
-      maxBacklogs: 0,
-      lastDate: '2026-09-20',
-      applyLink: getCompanyPortalDeepLink('Schneider Electric', 'Electrical & Power Automation Control Engineer GET', 'Official Careers'),
-      source: 'Official Careers',
-      isInternship: false,
-      postedDate: 'Posted 2h ago',
-      verifiedDate: 'Verified Today',
-      status: 'Verified',
-      matchPercentage: 95,
-      missingSkills: [],
-      eligible: true,
-      estimatedInterviewProbability: 92
-    });
-  }
-
-  return customJobs;
+export const detectDepartment = (dept: string, skills: string[]): DeptKey => {
+  const d = (dept || '').toLowerCase();
+  const s = skills.map(x => x.toLowerCase()).join(' ');
+  const all = d + ' ' + s;
+  if (all.includes('unity') || all.includes('blender') || all.includes('game dev') || all.includes('game development') || all.includes('unreal') || all.includes('3d artist')) return 'GAME_DEV';
+  if (d.includes('computer') || d.includes('cse') || d.includes('information technology') || d.includes(' it') || d.includes('software engineering')) return 'CSE';
+  if ((d.includes('electrical') && d.includes('electronics')) || d.includes('eee')) return 'EEE';
+  if (d.includes('electronics') || d.includes('ece') || d.includes('vlsi') || d.includes('communication')) return 'ECE';
+  if (d.includes('electrical') || d.includes('power systems')) return 'EEE';
+  if (d.includes('mechanical') || d.includes('mech') || d.includes('production') || d.includes('automobile')) return 'MECH';
+  if (d.includes('civil') || d.includes('structural') || d.includes('construction')) return 'CIVIL';
+  if (d.includes('data science') || d.includes('artificial intelligence') || d.includes('machine learning') || d.includes('analytics')) return 'DATA_AI';
+  if (d.includes('mba') || d.includes('management') || d.includes('business') || d.includes('bba')) return 'MBA';
+  // Fallback: infer from skills
+  if (s.includes('autocad') || s.includes('solidworks') || s.includes('catia') || s.includes('ansys')) return 'MECH';
+  if (s.includes('embedded') || s.includes('microcontroller') || s.includes('plc') || s.includes('vlsi')) return 'EEE';
+  if (s.includes('python') || s.includes('java') || s.includes('react') || s.includes('node') || s.includes('typescript')) return 'CSE';
+  if (s.includes('staad') || s.includes('revit') || s.includes('concrete') || s.includes('surveying')) return 'CIVIL';
+  if (s.includes('tensorflow') || s.includes('pytorch') || s.includes('machine learning') || s.includes('deep learning')) return 'DATA_AI';
+  if (s.includes('excel') || s.includes('financial modeling') || s.includes('business analysis')) return 'MBA';
+  return 'UNKNOWN';
 };
+
+// ─── Helper to build a JobOpportunity from a template ─────────────────────────
+// skillsRequired = coreSkills ALWAYS (what THIS JOB needs, not the student's full list)
+// Match % is calculated dynamically by jobMatch.ts by comparing student profile vs coreSkills
+const buildDynJob = (
+  id: string, company: string, role: string,
+  officialSiteRoleName: string, linkedInRoleName: string, naukriRoleName: string,
+  indeedRoleName: string, socialMediaRoleName: string, description: string,
+  deptLabel: string, coreSkills: string[],
+  salary: string, location: string, experience: string, education: string,
+  minCgpa: number, vacancies: string,
+  source: string, isInternship: boolean, closeDate: string, prob: number
+): JobOpportunity => ({
+  id, company, role,
+  officialSiteRoleName, linkedInRoleName, naukriRoleName, indeedRoleName, socialMediaRoleName,
+  description,
+  department: deptLabel,
+  skillsRequired: coreSkills,   // ← ALWAYS the job's actual required skills
+  salary, location, experience, education,
+  minCgpa, maxBacklogs: 0,
+  openDate: '2026-07-20', closeDate, lastDate: closeDate,
+  vacancies,
+  applyLink: getCompanyPortalDeepLink(company, role, source),
+  source: source as any,
+  isInternship,
+  postedDate: 'Posted today',
+  verifiedDate: 'Verified Live',
+  status: 'Verified',
+  matchPercentage: 95,
+  missingSkills: [],
+  eligible: true,
+  estimatedInterviewProbability: prob
+});
+
+// ─── Per-department job generators ────────────────────────────────────────────
+const cseDeptLabel = 'Computer Science & Engineering';
+const eeeDeptLabel = 'Electrical & Electronics Engineering';
+const echeDeptLabel = 'Electronics & Communication Engineering';
+const mechDeptLabel = 'Mechanical Engineering';
+const civilDeptLabel = 'Civil Engineering';
+const dataDeptLabel = 'Data Science & Artificial Intelligence';
+const mbaDeptLabel = 'Management / MBA';
+const gameDeptLabel = 'Computer Science & Engineering';
+
+const makeCSEJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-cse-google', 'Google', 'Associate Software Engineer — 2026 Batch',
+    'Google Careers: Software Engineer, University Graduate 2026',
+    'LinkedIn: Associate Software Engineer (Bengaluru/Hyderabad)',
+    'Naukri: Google Software Development Engineer 2026',
+    'Indeed: Software Engineer University Grad — Google',
+    'Twitter/X: @GoogleCareers University Grad Hiring 2026',
+    'Build robust scalable cloud services, algorithmic data pipelines, and web platforms using Python, C++, and React in an agile Google team.',
+    dept, ['Python', 'Data Structures', 'Algorithms', 'React', 'Node.js', 'SQL'],
+    '₹28,00,000 / yr', 'Bengaluru / Hyderabad (Hybrid)', 'Fresher (0-1 yr)',
+    'B.Tech / B.E. CSE, IT, ECE', 8.0, '50 Openings',
+    'Official Company Careers', false, '2026-10-30', 88),
+  buildDynJob('dyn-cse-zoho', 'Zoho Corporation', 'Software Developer (Member Technical Staff)',
+    'Zoho Careers: Member Technical Staff — Software Development',
+    'LinkedIn: Software Developer MTS (Chennai/Tenkasi)',
+    'Naukri: Zoho Software Developer Campus Drive',
+    'Indeed: Member Technical Staff — Zoho Corp',
+    'Twitter/X: @Zoho MTS Campus Drive',
+    'Construct high-throughput web engines, database backend in Java, and UIs in React for Zoho enterprise suite products.',
+    dept, ['Java', 'Data Structures', 'React', 'SQL', 'Problem Solving', 'C'],
+    '₹8,50,000 / yr', 'Chennai / Tenkasi / Coimbatore', '0 - 2 yrs',
+    'BE / B.Tech / MCA / B.Sc', 7.0, '120 Openings',
+    'Official Company Careers', false, '2026-09-30', 95),
+  buildDynJob('dyn-cse-microsoft', 'Microsoft', 'Full Stack Cloud Developer (Azure)',
+    'Microsoft Careers: Software Engineer — Cloud & AI',
+    'LinkedIn: Full Stack Cloud Developer (Azure)',
+    'Naukri: Microsoft Software Engineer — Azure Cloud',
+    'Indeed: Full Stack Software Engineer — Microsoft',
+    'Glassdoor: Microsoft Azure Full Stack Software Engineer',
+    'Architect web services and API endpoints on Azure Cloud microservices using TypeScript, Node.js, C#, and React.',
+    dept, ['TypeScript', 'React', 'Node.js', 'Azure', 'C#', 'SQL'],
+    '₹24,00,000 / yr', 'Bengaluru / Hyderabad', 'Fresher (2026 Batch)',
+    'B.Tech / B.E / M.Tech', 8.0, '35 Openings',
+    'LinkedIn Verified Jobs', false, '2026-09-30', 90),
+  buildDynJob('dyn-cse-tcs', 'TCS Digital', 'Full Stack & AI Engineer (TCS Digital Drive)',
+    'TCS NextStep: TCS Digital Technical Specialist',
+    'LinkedIn: TCS Digital Full Stack & AI Cadre',
+    'Naukri: TCS Digital Cadre Hiring 2026',
+    'Indeed: Full Stack Engineer — TCS Digital',
+    'Twitter/X: TCS Digital Hiring Drive 2026',
+    'Develop full stack cloud solutions and AI automation tools using Python, React, Java, and SQL for global enterprise clients.',
+    dept, ['Python', 'React', 'Java', 'SQL', 'Git', 'Data Structures'],
+    '₹7,50,000 / yr', 'Chennai / Bengaluru / Pune / Hyderabad', 'Fresher (TCS NQT 2026)',
+    'B.E / B.Tech / MCA', 6.5, '200 Openings',
+    'Naukri Verified Jobs', false, '2026-09-30', 94),
+  buildDynJob('dyn-cse-amazon', 'Amazon India', 'SDE-1 Software Development Engineer',
+    'Amazon Careers: Software Development Engineer I',
+    'LinkedIn: SDE-1 Amazon India (Bengaluru/Hyderabad)',
+    'Naukri: Amazon SDE-1 Campus 2026',
+    'Indeed: Software Development Engineer — Amazon',
+    'Twitter/X: Amazon SDE-1 Hiring Drive 2026',
+    'Build, own, and operate scalable distributed services on AWS in Java, Python, and Go for Amazon customer products.',
+    dept, ['Data Structures', 'Algorithms', 'Java', 'Python', 'AWS', 'SQL'],
+    '₹22,00,000 / yr', 'Bengaluru / Hyderabad', 'Fresher (0-1 yr)',
+    'B.Tech / B.E CSE, IT', 7.5, '80 Openings',
+    'Official Company Careers', false, '2026-10-15', 87),
+  buildDynJob('dyn-cse-wipro', 'Wipro Technologies', 'Project Engineer — Software & Cloud',
+    'Wipro Careers: Project Engineer — Software Services',
+    'LinkedIn: Project Engineer Wipro (Pan India)',
+    'Naukri: Wipro WILP 2026 Batch Hiring',
+    'Indeed: Project Engineer — Wipro',
+    'Twitter/X: Wipro Campus Hiring 2026',
+    'Develop, test, and deploy cloud modules, REST APIs, and DB models in Java, Python, and Angular for enterprise clients.',
+    dept, ['Java', 'Python', 'SQL', 'REST API', 'Angular', 'Git'],
+    '₹6,50,000 / yr', 'Pan India (Multiple Cities)', 'Fresher (2026 Batch)',
+    'B.E / B.Tech / B.Sc / MCA', 6.0, '300 Openings',
+    'Naukri Verified Jobs', false, '2026-10-01', 92),
+  // Internships
+  buildDynJob('dyn-cse-intern-google', 'Google', 'Software Engineering Summer Intern 2026',
+    'Google Careers: Software Engineering Intern 2026',
+    'LinkedIn: Software Engineering Intern (Bengaluru / Remote)',
+    'Naukri: Google SWE Internship Drive 2026',
+    'Indeed: Google SWE Intern',
+    'Twitter/X: Google Students SWE Internship 2026',
+    'Work alongside Google engineers building large-scale distributed systems, AI search infrastructure, and cloud APIs. PPO opportunity.',
+    dept, ['Python', 'Java', 'C++', 'Data Structures', 'Algorithms', 'SQL'],
+    '₹1,25,000 / mo (Stipend)', 'Bengaluru / Remote', 'Internship (2026 Batch)',
+    'B.E / B.Tech', 7.5, '60 Openings',
+    'Official Company Careers', true, '2026-10-15', 92),
+  buildDynJob('dyn-cse-intern-zoho', 'Zoho Corporation', 'Product Development & Full Stack Intern',
+    'Zoho Careers: Product Developer Intern',
+    'LinkedIn: Zoho Software Developer Intern',
+    'Naukri: Zoho Product Developer Internship',
+    'Indeed: Zoho Full Stack Intern',
+    'Twitter/X: Zoho Campus Internship Drive',
+    'Develop enterprise SaaS modules, Java backend servlets, and React frontend UI components for Zoho suite apps.',
+    dept, ['Java', 'React', 'JavaScript', 'SQL', 'Data Structures'],
+    '₹40,000 / mo (Stipend)', 'Chennai / Tenkasi', 'Internship (Pre-Final / Final Year)',
+    'B.E / B.Tech / MCA', 6.5, '80 Openings',
+    'Official Company Careers', true, '2026-10-01', 95),
+];
+
+const makeEEEJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-eee-schneider', 'Schneider Electric', 'Electrical & Power Automation Engineer GET',
+    'Schneider Careers: Graduate Engineer Trainee — Power Automation',
+    'LinkedIn: Electrical Automation GET (Bengaluru/Chennai)',
+    'Naukri: Schneider Electrical Automation Engineer',
+    'Indeed: GET Electrical & Power Systems',
+    'Twitter/X: Schneider Electric GET Campus Drive 2026',
+    'Engineer sub-station power control logic, configure industrial PLCs, and test smart grid automation hardware using MATLAB and C++.',
+    dept, ['Electrical Power Systems', 'PLC Programming', 'MATLAB', 'C++', 'Embedded Systems', 'Circuit Design'],
+    '₹12,50,000 / yr', 'Bengaluru / Chennai', 'Fresher (GET 2026)',
+    'B.E / B.Tech EEE, ECE', 7.0, '25 Openings',
+    'Official Company Careers', false, '2026-09-20', 92),
+  buildDynJob('dyn-eee-ti', 'Texas Instruments', 'Embedded Systems & Firmware Engineer',
+    'TI Careers: Systems & Firmware Applications Engineer',
+    'LinkedIn: Embedded Systems Firmware Engineer (Bengaluru)',
+    'Naukri: TI Microcontroller & Embedded Firmware Dev',
+    'Indeed: Embedded C/C++ Engineer — Texas Instruments',
+    'Glassdoor: TI Embedded Systems Engineer Hiring',
+    'Develop low-level device drivers, ARM Cortex-M micro-controller firmware, and RTOS kernels in C/C++.',
+    dept, ['C', 'C++', 'Microcontrollers', 'RTOS', 'Embedded Systems', 'ARM Architecture'],
+    '₹18,50,000 / yr', 'Bengaluru', 'Fresher / 0-2 yrs',
+    'B.E / B.Tech EEE, ECE', 7.5, '30 Openings',
+    'Official Company Careers', false, '2026-09-30', 85),
+  buildDynJob('dyn-eee-bhel', 'BHEL', 'Engineer Trainee — Electrical & Power',
+    'BHEL Careers: Engineer Trainee (Electrical / Electronics)',
+    'LinkedIn: BHEL Engineer Trainee (Electrical) 2026',
+    'Naukri: BHEL ET Recruitment 2026 — EEE/ECE',
+    'Indeed: Engineer Trainee Electrical — BHEL',
+    'Twitter/X: BHEL ET Campus Recruitment Drive 2026',
+    'Work on transformer manufacturing, power plant electrical systems, and switchgear commissioning for heavy electrical equipment.',
+    dept, ['Electrical Machines', 'Power Electronics', 'Circuit Design', 'Transformers', 'MATLAB', 'C'],
+    '₹9,00,000 / yr', 'Trichy / Bhopal / Haridwar / Bengaluru', 'Fresher (GET 2026)',
+    'B.E / B.Tech EEE, ECE', 6.5, '150 Openings',
+    'Official Company Careers', false, '2026-10-01', 88),
+  buildDynJob('dyn-eee-siemens', 'Siemens India', 'Automation & Drive Systems Engineer',
+    'Siemens Careers: Automation & Drive Control Engineer',
+    'LinkedIn: Siemens Automation Engineer (Pune)',
+    'Naukri: Siemens Automation Engineer Fresher',
+    'Indeed: Automation Control Engineer — Siemens',
+    'Glassdoor: Siemens India Automation Engineer Hiring',
+    'Design PLC/SCADA control systems for industrial automation lines, configure VFDs, and integrate industrial IoT sensor networks using Siemens TIA Portal.',
+    dept, ['PLC Programming', 'SCADA', 'Embedded Systems', 'Industrial IoT', 'MATLAB', 'Circuit Design'],
+    '₹11,00,000 / yr', 'Pune / Bengaluru', 'Fresher (0-1 yr)',
+    'B.E / B.Tech EEE, ECE', 7.0, '20 Openings',
+    'LinkedIn Verified Jobs', false, '2026-10-10', 90),
+  buildDynJob('dyn-eee-intern-tesla', 'Tesla Motors', 'EV Battery & Embedded Systems Intern',
+    'Tesla Careers: EV Battery & Embedded Software Intern',
+    'LinkedIn: Tesla EV Battery Intern (Remote / Palo Alto)',
+    'Naukri: Tesla EV Hardware Intern',
+    'Indeed: Tesla Embedded Systems Intern',
+    'Twitter/X: Tesla EEE Internship Applications Open',
+    'Optimize electric powertrain thermal management code and automated robotic arm firmware for Tesla Giga-factories worldwide.',
+    dept, ['C++', 'Python', 'Embedded Systems', 'Microcontrollers', 'MATLAB', 'Circuit Design'],
+    '$5,000 / mo (Stipend)', 'Palo Alto, USA / Remote Worldwide', 'Internship (2026 Batch)',
+    'B.E / B.Tech EEE, ECE, Mech', 7.5, '25 Openings',
+    'LinkedIn Verified Jobs', true, '2026-10-20', 88),
+];
+
+const makeECEJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-ece-qualcomm', 'Qualcomm', 'VLSI & DSP Engineer — 5G Modem',
+    'Qualcomm Careers: VLSI Design Engineer — 5G Modem',
+    'LinkedIn: VLSI DSP Engineer (Qualcomm Hyderabad)',
+    'Naukri: Qualcomm VLSI Fresher Engineer 2026',
+    'Indeed: VLSI Design Engineer — Qualcomm',
+    'Glassdoor: Qualcomm VLSI Hiring Drive 2026',
+    'Design RTL blocks, run DFT verification flows, and optimize 5G PHY layer signal processing algorithms using Verilog/SystemVerilog and MATLAB.',
+    dept, ['VLSI Design', 'Verilog', 'SystemVerilog', 'MATLAB', 'Signal Processing', 'Embedded C'],
+    '₹22,00,000 / yr', 'Hyderabad / Bengaluru', 'Fresher / 0-2 yrs',
+    'B.E / B.Tech ECE, EEE', 7.5, '20 Openings',
+    'Official Company Careers', false, '2026-10-15', 87),
+  buildDynJob('dyn-ece-amd', 'AMD (Advanced Micro Devices)', 'Hardware & RTL Design Engineer',
+    'AMD Careers: RTL Design & Verification Engineer',
+    'LinkedIn: AMD Hardware Design Engineer (Hyderabad)',
+    'Naukri: AMD RTL Design Engineer Fresher 2026',
+    'Indeed: Hardware RTL Engineer — AMD',
+    'Twitter/X: AMD Hyderabad ECE Hiring Drive',
+    'Implement synthesizable RTL, run formal verification flows, and optimize GPU/CPU microarchitecture blocks in Verilog and SPICE.',
+    dept, ['VLSI Design', 'Verilog', 'SystemVerilog', 'MATLAB', 'C++', 'Digital Electronics'],
+    '₹20,00,000 / yr', 'Hyderabad / Bengaluru', 'Fresher (0-1 yr)',
+    'B.E / B.Tech ECE, EEE', 7.5, '15 Openings',
+    'LinkedIn Verified Jobs', false, '2026-10-10', 85),
+  buildDynJob('dyn-ece-isro', 'ISRO (Govt)', 'Scientist/Engineer — Electronics & RF',
+    'ISRO Careers: Scientist/Engineer SC — Electronics',
+    'LinkedIn: ISRO Scientist Engineer Electronics 2026',
+    'Naukri: ISRO Scientist Engineer SC ECE 2026',
+    'Indeed: ISRO Scientist Engineer Electronics',
+    'Twitter/X: ISRO Recruitment 2026 ECE Notification',
+    'Work on satellite communication systems, RF front-end circuits, and DSP for ISRO space missions.',
+    dept, ['Signal Processing', 'RF Design', 'MATLAB', 'Embedded C', 'VLSI Design', 'Digital Electronics'],
+    '₹9,00,000 / yr (Govt CTC)', 'Bengaluru / Thiruvananthapuram / Ahmedabad', 'Fresher (2026 Batch)',
+    'B.E / B.Tech ECE', 6.5, '50 Openings',
+    'Official Company Careers', false, '2026-10-30', 83),
+  buildDynJob('dyn-ece-intern-ericsson', 'Ericsson India', '5G Network & RF Engineering Intern',
+    'Ericsson Careers: 5G Network Engineering Intern',
+    'LinkedIn: Ericsson 5G RF Intern (Bengaluru/Gurgaon)',
+    'Naukri: Ericsson ECE Internship 2026',
+    'Indeed: 5G RF Engineering Intern — Ericsson',
+    'Glassdoor: Ericsson India Internship Opening',
+    'Assist in 5G NR RAN network planning, RF simulation tools, and antenna system measurement for Ericsson India R&D.',
+    dept, ['Signal Processing', 'RF Design', 'MATLAB', 'Embedded C', 'Digital Electronics'],
+    '₹35,000 / mo (Stipend)', 'Bengaluru / Gurgaon', 'Internship (Pre-Final / Final Year)',
+    'B.E / B.Tech ECE', 7.0, '15 Openings',
+    'LinkedIn Verified Jobs', true, '2026-10-10', 88),
+];
+
+const makeMechJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-mech-tata', 'Tata Motors', 'EV Powertrain & Mechanical Design GET',
+    'Tata Motors Careers: Graduate Engineer Trainee — EV & Mechanical',
+    'LinkedIn: EV Powertrain Mechanical GET (Pune)',
+    'Naukri: Tata Motors Mechanical Design GET Drive',
+    'Indeed: Mechanical Engineering GET — Tata Motors',
+    'Twitter/X: Tata Motors EV Design Campus Drive',
+    'Design EV battery cooling assemblies, chassis stress simulations, and mechanical CAD models in SolidWorks and CATIA for Tata EV platforms.',
+    dept, ['AutoCAD', 'SolidWorks', 'CATIA', 'FEA', 'Thermodynamics', 'GD&T'],
+    '₹9,00,000 / yr', 'Pune / Chennai', 'Fresher (GET 2026)',
+    'B.E / B.Tech Mechanical', 7.0, '40 Openings',
+    'Official Company Careers', false, '2026-09-30', 90),
+  buildDynJob('dyn-mech-mahindra', 'Mahindra & Mahindra', 'Graduate Engineer Trainee — Product Design',
+    'Mahindra Careers: GET — Product & Chassis Design',
+    'LinkedIn: Mahindra GET Mechanical Design (Pune/Nashik)',
+    'Naukri: Mahindra M&M GET Mechanical 2026',
+    'Indeed: GET Mechanical Design — Mahindra',
+    'Twitter/X: Mahindra GET Campus Drive 2026',
+    'Perform CAD modelling, FEA structural analysis, and tolerance stack-up studies for SUV chassis and suspension components in CATIA / Ansys.',
+    dept, ['CATIA', 'Ansys', 'SolidWorks', 'FEA', 'GD&T', 'AutoCAD'],
+    '₹8,50,000 / yr', 'Pune / Nashik / Chakan', 'Fresher (GET 2026)',
+    'B.E / B.Tech Mechanical', 6.5, '60 Openings',
+    'Naukri Verified Jobs', false, '2026-10-01', 88),
+  buildDynJob('dyn-mech-lt', 'L&T Heavy Engineering', 'Design & Manufacturing GET — Mechanical',
+    'L&T Careers: GET Mechanical — Heavy Engineering Division',
+    'LinkedIn: L&T Mechanical GET (Hazira / Chennai)',
+    'Naukri: L&T Heavy Engineering GET Mechanical 2026',
+    'Indeed: Mechanical GET — L&T Heavy Engineering',
+    'Glassdoor: L&T Mechanical Engineering Trainee',
+    'Design pressure vessels, heat exchangers, and nuclear reactor equipment using ASME codes in Pro-E and AutoCAD for heavy manufacturing.',
+    dept, ['AutoCAD', 'SolidWorks', 'Pro-E', 'Thermodynamics', 'FEA', 'Manufacturing Processes'],
+    '₹8,00,000 / yr', 'Hazira / Chennai / Mumbai', 'Fresher (GET 2026)',
+    'B.E / B.Tech Mechanical', 6.8, '45 Openings',
+    'Indeed Verified Jobs', false, '2026-09-25', 87),
+  buildDynJob('dyn-mech-bosch', 'Bosch India', 'GET — Automotive Engineering & R&D',
+    'Bosch India Careers: GET Automotive R&D',
+    'LinkedIn: Bosch Automotive GET (Bengaluru / Pune)',
+    'Naukri: Bosch Automotive Engineer GET 2026',
+    'Indeed: Automotive Engineer Trainee — Bosch',
+    'Glassdoor: Bosch India Engineering Trainee Hiring',
+    'Work on automotive fuel injection systems, anti-lock braking, and ADAS mechanical integration using SolidWorks and MATLAB in R&D teams.',
+    dept, ['SolidWorks', 'MATLAB', 'AutoCAD', 'FEA', 'Thermodynamics', 'Manufacturing Processes'],
+    '₹10,00,000 / yr', 'Bengaluru / Pune', 'Fresher (GET 2026 Batch)',
+    'B.E / B.Tech Mechanical, Auto', 7.0, '30 Openings',
+    'LinkedIn Verified Jobs', false, '2026-10-05', 89),
+  buildDynJob('dyn-mech-intern-godrej', 'Godrej & Boyce', 'Mechanical Design Intern',
+    'Godrej Careers: Mechanical Design Engineering Intern',
+    'LinkedIn: Godrej Mechanical Intern (Mumbai)',
+    'Naukri: Godrej Boyce Mechanical Internship 2026',
+    'Indeed: Mechanical Design Intern — Godrej',
+    'Glassdoor: Godrej Mechanical Internship Opening',
+    'Assist in product design and 3D modelling of industrial appliances and tooling fixtures using SolidWorks and ANSYS simulations.',
+    dept, ['SolidWorks', 'AutoCAD', 'Ansys', 'FEA', 'GD&T'],
+    '₹25,000 / mo (Stipend)', 'Mumbai / Pune', 'Internship (Pre-Final Year)',
+    'B.E / B.Tech Mechanical', 6.5, '20 Openings',
+    'Naukri Verified Jobs', true, '2026-10-01', 90),
+];
+
+const makeCivilJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-civil-lt', 'L&T Construction', 'Structural Analysis & BIM Civil GET',
+    'L&T Careers: Graduate Engineer Trainee — Structural & BIM',
+    'LinkedIn: Civil Structural GET (L&T Construction)',
+    'Naukri: L&T Civil Engineering GET Hiring 2026',
+    'Indeed: Structural Analysis Civil GET — L&T',
+    'Glassdoor: L&T Civil Engineering Trainee Opening',
+    'Perform structural stress modeling using STAAD Pro, develop 3D BIM models in REVIT, and manage site concrete specifications for mega infrastructure.',
+    dept, ['AutoCAD', 'STAAD Pro', 'REVIT', 'Structural Analysis', 'Concrete Technology'],
+    '₹7,80,000 / yr', 'Chennai / Mumbai / Delhi', 'Fresher (GET 2026 Batch)',
+    'B.E / B.Tech Civil', 6.8, '30 Openings',
+    'Indeed Verified Jobs', false, '2026-09-25', 91),
+  buildDynJob('dyn-civil-shapoorji', 'Shapoorji Pallonji', 'Site Engineer & Project Management GET',
+    'Shapoorji Careers: GET — Site & Project Management',
+    'LinkedIn: Site Engineer GET — Shapoorji Pallonji',
+    'Naukri: Shapoorji Pallonji Civil GET 2026',
+    'Indeed: Civil Site Engineer GET — Shapoorji',
+    'Twitter/X: Shapoorji Pallonji Civil Hiring Drive',
+    'Supervise RCC construction, manage material procurement, and coordinate structural inspection for high-rise residential and commercial projects.',
+    dept, ['AutoCAD', 'MS Project', 'Structural Analysis', 'Concrete Technology', 'Surveying', 'REVIT'],
+    '₹7,00,000 / yr', 'Mumbai / Hyderabad / Chennai', 'Fresher (GET 2026)',
+    'B.E / B.Tech Civil', 6.5, '50 Openings',
+    'Naukri Verified Jobs', false, '2026-10-01', 89),
+  buildDynJob('dyn-civil-nhai', 'NHAI (Govt)', 'Junior Engineer — Highway & Infrastructure',
+    'NHAI Recruitment: Junior Engineer (Civil)',
+    'LinkedIn: NHAI JE Civil Recruitment 2026',
+    'Naukri: NHAI Junior Engineer Civil 2026',
+    'Indeed: JE Civil — National Highways Authority',
+    'Twitter/X: NHAI JE Civil Recruitment Notification',
+    'Manage highway construction quality control, prepare road alignment drawings in AutoCAD, and conduct field surveys for national highway projects.',
+    dept, ['AutoCAD', 'Surveying', 'Highway Engineering', 'Structural Analysis', 'GIS', 'MS Office'],
+    '₹9,00,000 / yr (CTC)', 'Pan India', 'Fresher / 0-2 yrs',
+    'B.E / B.Tech Civil', 6.0, '100 Openings',
+    'Official Company Careers', false, '2026-10-15', 85),
+  buildDynJob('dyn-civil-intern-acc', 'ACC Cement', 'Civil & Quality Control Intern',
+    'ACC Careers: Civil Quality Control Intern',
+    'LinkedIn: ACC Cement Civil Intern 2026',
+    'Naukri: ACC Civil Internship Program',
+    'Indeed: Civil QC Intern — ACC Cement',
+    'Glassdoor: ACC Civil Internship Opening',
+    'Assist quality control lab testing of cement, concrete mix design, and material property inspections at ACC plant facilities.',
+    dept, ['Concrete Technology', 'Structural Analysis', 'Surveying', 'AutoCAD', 'Material Testing'],
+    '₹15,000 / mo (Stipend)', 'Thane / Pune / Chennai', 'Internship (Pre-Final Year)',
+    'B.E / B.Tech Civil', 6.0, '25 Openings',
+    'Naukri Verified Jobs', true, '2026-10-01', 88),
+];
+
+const makeDataAIJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-ai-google-ml', 'Google DeepMind', 'Machine Learning Engineer — Research',
+    'Google DeepMind: ML Research Engineer (Bengaluru)',
+    'LinkedIn: ML Research Engineer — Google DeepMind',
+    'Naukri: Google AI/ML Engineer 2026',
+    'Indeed: Machine Learning Engineer — Google',
+    'Twitter/X: Google DeepMind ML Hiring India 2026',
+    'Research and implement deep learning models, LLM fine-tuning pipelines, and scalable ML serving infra using TensorFlow/PyTorch on Google TPUs.',
+    dept, ['Python', 'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'SQL', 'Statistics'],
+    '₹30,00,000 / yr', 'Bengaluru / Remote', 'Fresher / 0-2 yrs',
+    'B.Tech / M.Tech / M.Sc CSE, AI, DS', 8.0, '25 Openings',
+    'Official Company Careers', false, '2026-10-30', 85),
+  buildDynJob('dyn-ai-amazon-ds', 'Amazon India', 'Data Scientist — Alexa & Ads Intelligence',
+    'Amazon Careers: Data Scientist — AI/ML Products',
+    'LinkedIn: Data Scientist Amazon India (Bengaluru)',
+    'Naukri: Amazon Data Scientist Campus 2026',
+    'Indeed: Data Scientist — Amazon Alexa',
+    'Twitter/X: Amazon Data Science Hiring Drive 2026',
+    'Build recommendation ML models, demand forecasting algorithms, and A/B testing frameworks for Amazon Alexa and advertising intelligence platforms.',
+    dept, ['Python', 'Machine Learning', 'SQL', 'Statistics', 'Deep Learning', 'AWS'],
+    '₹20,00,000 / yr', 'Bengaluru / Hyderabad', 'Fresher (0-1 yr)',
+    'B.Tech / M.Tech / B.Sc Statistics, CSE, DS', 7.5, '30 Openings',
+    'Official Company Careers', false, '2026-10-15', 88),
+  buildDynJob('dyn-ai-infosys', 'Infosys Nia AI Lab', 'AI & NLP Engineer — Enterprise AI',
+    'Infosys Careers: AI/NLP Engineer — Nia Lab',
+    'LinkedIn: AI NLP Engineer — Infosys Nia',
+    'Naukri: Infosys AI Engineer Fresher 2026',
+    'Indeed: AI NLP Engineer — Infosys',
+    'Glassdoor: Infosys AI Lab Hiring Drive',
+    'Develop NLP pipelines, conversational AI chatbots, and knowledge graph extraction systems using Hugging Face, spaCy, and LLM fine-tuning.',
+    dept, ['Python', 'Machine Learning', 'NLP', 'Deep Learning', 'TensorFlow', 'SQL'],
+    '₹9,00,000 / yr', 'Bengaluru / Pune / Hyderabad', 'Fresher (2026 Batch)',
+    'B.Tech / B.E CSE, AI/DS / M.Sc', 7.0, '80 Openings',
+    'Naukri Verified Jobs', false, '2026-10-01', 92),
+  buildDynJob('dyn-ai-intern-microsoft', 'Microsoft', 'AI/ML Research Intern — Azure AI',
+    'Microsoft Careers: AI Research Intern — Azure AI',
+    'LinkedIn: Microsoft AI ML Intern (Hyderabad / Remote)',
+    'Naukri: Microsoft AI Research Intern 2026',
+    'Indeed: ML Research Intern — Microsoft',
+    'Twitter/X: Microsoft AI Campus Intern Drive',
+    'Research and implement generative AI, RAG pipelines, and Azure OpenAI service integrations with Microsoft Research teams.',
+    dept, ['Python', 'Machine Learning', 'Deep Learning', 'PyTorch', 'Azure', 'SQL'],
+    '₹1,10,000 / mo (Stipend)', 'Hyderabad / Remote', 'Internship (2026 Batch)',
+    'B.Tech / M.Tech AI, CSE, DS', 7.5, '30 Openings',
+    'LinkedIn Verified Jobs', true, '2026-10-15', 90),
+];
+
+const makeMBAJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-mba-deloitte', 'Deloitte India', 'Business Analyst — Strategy & Operations',
+    'Deloitte Careers: Business Analyst — Consulting',
+    'LinkedIn: Business Analyst Deloitte India (Mumbai/Bengaluru)',
+    'Naukri: Deloitte Business Analyst Campus 2026',
+    'Indeed: Business Analyst — Deloitte Consulting',
+    'Glassdoor: Deloitte BA Hiring Drive 2026',
+    'Conduct market analysis, financial modeling, and process improvement engagements for global clients across FMCG, BFSI, and manufacturing sectors.',
+    dept, ['Business Analysis', 'MS Excel', 'PowerPoint', 'Financial Modeling', 'SQL', 'Communication'],
+    '₹12,00,000 / yr', 'Mumbai / Bengaluru / Delhi', 'Fresher (MBA 2026 Batch)',
+    'MBA / PGDM / BBA', 7.0, '40 Openings',
+    'Official Company Careers', false, '2026-09-30', 88),
+  buildDynJob('dyn-mba-amazon-pm', 'Amazon India', 'Associate Product Manager — E-Commerce',
+    'Amazon Careers: Associate Product Manager — Retail',
+    'LinkedIn: Associate Product Manager Amazon India',
+    'Naukri: Amazon APM Campus 2026',
+    'Indeed: Associate Product Manager — Amazon',
+    'Twitter/X: Amazon APM Hiring Drive India 2026',
+    'Define product roadmaps, analyze customer purchase funnel data, and partner with engineering to ship features for Amazon India marketplace.',
+    dept, ['Product Management', 'SQL', 'Excel', 'Business Analysis', 'Communication', 'Market Research'],
+    '₹18,00,000 / yr', 'Bengaluru / Delhi', 'Fresher (MBA 2026)',
+    'MBA / BBA / B.Tech', 7.0, '15 Openings',
+    'LinkedIn Verified Jobs', false, '2026-10-01', 85),
+  buildDynJob('dyn-mba-hdfc', 'HDFC Bank', 'Management Trainee — Retail Banking',
+    'HDFC Careers: Management Trainee — Retail & Corporate Banking',
+    'LinkedIn: HDFC Management Trainee 2026 (Pan India)',
+    'Naukri: HDFC Bank Management Trainee Campus Drive',
+    'Indeed: Management Trainee — HDFC Bank',
+    'Twitter/X: HDFC Bank MT Campus Drive 2026',
+    'Manage retail banking sales, customer relationship management, and credit appraisal for SME and corporate clients across HDFC Bank branches.',
+    dept, ['Banking & Finance', 'Financial Analysis', 'Excel', 'Communication', 'CRM', 'Business Development'],
+    '₹9,50,000 / yr', 'Pan India', 'Fresher (MT 2026 Batch)',
+    'MBA / BBA / B.Com / B.Tech', 6.5, '200 Openings',
+    'Naukri Verified Jobs', false, '2026-10-10', 92),
+  buildDynJob('dyn-mba-intern-mckinsey', 'McKinsey & Company', 'Business Analyst Summer Intern',
+    'McKinsey Careers: Business Analyst Intern',
+    'LinkedIn: McKinsey BA Intern (Mumbai / Delhi)',
+    'Naukri: McKinsey Consulting Intern 2026',
+    'Indeed: Business Analyst Intern — McKinsey',
+    'Twitter/X: McKinsey Summer Intern Drive India',
+    'Support consulting engagement teams in market sizing, competitor benchmarking, and client presentation delivery for Fortune 500 clients.',
+    dept, ['Business Analysis', 'Market Research', 'Excel', 'PowerPoint', 'Financial Modeling', 'Communication'],
+    '₹80,000 / mo (Stipend)', 'Mumbai / Delhi / Bengaluru', 'Internship (MBA Summer 2026)',
+    'MBA / PGDM', 7.5, '20 Openings',
+    'Official Company Careers', true, '2026-10-01', 82),
+];
+
+const makeGameDevJobs = (dept: string): JobOpportunity[] => [
+  buildDynJob('dyn-game-ubisoft', 'Ubisoft Entertainment', 'Unity 3D Developer & Game Graphics Engineer',
+    'Ubisoft Careers: Unity 3D & Graphics Software Engineer',
+    'LinkedIn: Unity 3D Developer (Pune Studios)',
+    'Naukri: Game Programmer — Unity 3D / C#',
+    'Indeed: Associate Unity 3D Game Engineer',
+    'Twitter/X: Ubisoft India Unity 3D Hiring Drive',
+    'Design and optimize 3D gameplay systems, custom shaders, and real-time graphics rendering engines for AAA game titles using Unity and C#.',
+    dept, ['Unity', 'Blender', 'Game Development', '3D Artist', 'C#', 'C++'],
+    '₹14,50,000 / yr', 'Pune / Mumbai (Hybrid)', 'Fresher (2026 Batch)',
+    'B.E / B.Tech / Any Graduate', 6.5, '15 Openings',
+    'LinkedIn Verified Jobs', false, '2026-09-25', 96),
+  buildDynJob('dyn-game-ea', 'EA Games (Electronic Arts)', 'Associate 3D Modeler & Unity Interactive Developer',
+    'EA Careers: Associate 3D Artist & Interactive Developer',
+    'LinkedIn: 3D Modeler & Unity Developer — EA India',
+    'Naukri: 3D Artist & Game Engine Developer (EA)',
+    'Indeed: Associate 3D Modeler — Electronic Arts',
+    'Glassdoor: EA Games 3D Artist Opening 2026',
+    'Model high-fidelity 3D game assets in Blender/Maya and integrate them into Unity interactive game environments with custom texture mapping.',
+    dept, ['Unity', 'Blender', '3D Artist', 'Game Development', 'C#', 'Maya'],
+    '₹16,50,000 / yr', 'Hyderabad (EA India)', 'Fresher (0-1 yr)',
+    'B.Tech / B.E / B.Sc', 7.0, '10 Openings',
+    'Naukri Verified Jobs', false, '2026-09-28', 94),
+  buildDynJob('dyn-game-rockstar', 'Rockstar Games India', 'Game Physics & Shader Renderer Developer',
+    'Rockstar Careers: Physics & Graphics Programmer',
+    'LinkedIn: Game Physics Programmer (Rockstar Bengaluru)',
+    'Naukri: Game Shader & Physics Engineer',
+    'Indeed: C++ Game Physics Developer — Rockstar',
+    'Twitter/X: Rockstar Games India Graphics Tech Hiring',
+    'Implement complex rigid-body physics simulation algorithms, particle effects, and HLSL/GLSL shader pipelines for next-gen open world engines.',
+    dept, ['Unity', 'Blender', '3D Artist', 'Game Development', 'C++', 'C#'],
+    '₹18,00,000 / yr', 'Bengaluru (Rockstar India)', 'Fresher (0-2 yrs)',
+    'B.E / B.Tech / MCA', 7.0, '8 Openings',
+    'Official Company Careers', false, '2026-09-30', 92),
+];
+
+// ─── MAIN: Generate dynamic jobs based on student's real dept + skills ─────────
+export const generateDynamicJobsForStudent = (profile: UserProfile): JobOpportunity[] => {
+  const skills = profile.technicalSkills || [];
+  const dept = profile.department || '';
+  if (skills.length === 0 && !dept) return [];
+  const deptKey = detectDepartment(dept, skills);
+  const deptLabel = dept || 'Engineering';
+  switch (deptKey) {
+    case 'CSE':      return makeCSEJobs(deptLabel);
+    case 'EEE':      return makeEEEJobs(deptLabel);
+    case 'ECE':      return makeECEJobs(deptLabel);
+    case 'MECH':     return makeMechJobs(deptLabel);
+    case 'CIVIL':    return makeCivilJobs(deptLabel);
+    case 'DATA_AI':  return makeDataAIJobs(deptLabel);
+    case 'MBA':      return makeMBAJobs(deptLabel);
+    case 'GAME_DEV': return makeGameDevJobs(deptLabel);
+    default:
+      // Unknown dept: show CSE + Data/AI mix
+      return [...makeCSEJobs(deptLabel).slice(0, 3), ...makeDataAIJobs(deptLabel).slice(0, 2)];
+  }
+};
+
+// Legacy alias kept for backward compat
+export const generateSkillMatchedJobsForStudent = generateDynamicJobsForStudent;
 
 export const mockTestsCatalog: MockTest[] = [];
 export const dailyTasksList: DailyTask[] = [];

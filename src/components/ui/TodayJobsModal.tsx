@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 import { getCompanyPortalDeepLink, getAlternativePortalLinks } from '../../utils/jobLinks';
-import { sampleJobs } from '../../services/mockData';
+import { sampleJobs, generateDynamicJobsForStudent } from '../../services/mockData';
 import { useAuth } from '../../context/AuthContext';
 import { calculateDynamicMatch } from '../../utils/jobMatch';
 
@@ -32,12 +32,17 @@ export const TodayJobsModal: React.FC<TodayJobsModalProps> = ({
   onNavigateToJobs
 }) => {
   const { profile } = useAuth();
-  const [jobsList] = useState<JobOpportunity[]>(sampleJobs);
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
   const [selectedSourceFilter, setSelectedSourceFilter] = useState<string>('All');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState<'24h' | '1d'>('24h');
 
   if (!isOpen) return null;
+
+  // Dynamic jobs for this student's department + real skills, merged with static jobs (EXACT SAME AS WEBAPP / JOB BOARD)
+  const dynamicJobs = generateDynamicJobsForStudent(profile);
+  const dynamicIds = new Set(dynamicJobs.map(j => j.id));
+  const filteredStatic = sampleJobs.filter(j => !dynamicIds.has(j.id));
+  const jobsList = dynamicJobs.length > 0 ? [...dynamicJobs, ...filteredStatic] : sampleJobs;
 
   // Filter jobs based on skills, past 24 hours post date, and verified portal sources
   const todayJobs = jobsList.filter(job => {

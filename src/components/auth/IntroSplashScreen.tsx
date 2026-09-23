@@ -190,7 +190,7 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onEnterWeb
             <Zap className="w-5 h-5 text-indigo-600 shrink-0" />
             <div>
               <div className="text-xs font-bold text-slate-800">Instant Access</div>
-              <div className="text-[10px] text-slate-500">Multi-Role Support</div>
+              <div className="text-[10px] text-slate-500">Student AI Portal</div>
             </div>
           </div>
         </div>

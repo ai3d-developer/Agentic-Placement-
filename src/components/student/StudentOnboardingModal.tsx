@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { parseResumeTextToProfile } from '../../services/aiEngine';
 import { extractTextFromPdfFile } from '../../utils/pdfExtractor';
 import { saveUploadedResumeDataToFirestore, saveStudentProfileToFirestore } from '../../services/firebase';
+import { CongratulationsJobsModal } from '../ui/CongratulationsJobsModal';
 import {
   User,
   GraduationCap,
@@ -78,7 +79,9 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
   const [n8nStatus, setN8nStatus] = useState<string>('');
   const [isFullScreen, setIsFullScreen] = useState<boolean>(true);
 
-  if (!isOpen) return null;
+  const [showCelebration, setShowCelebration] = useState<boolean>(false);
+
+  if (!isOpen && !showCelebration) return null;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -166,10 +169,8 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
     saveStudentProfileToFirestore({ ...profile, ...finalProfile });
     completeOnboarding(finalProfile);
 
-    onClose();
-    if (onNavigateToJobs) {
-      onNavigateToJobs();
-    }
+    // Trigger Fireworks & Crackers Celebration Modal!
+    setShowCelebration(true);
   };
 
   return (
@@ -492,7 +493,7 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white text-xs font-extrabold shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2"
+                className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white text-xs font-extrabold shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Save Profile & Unlock Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
@@ -502,6 +503,22 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
         </div>
       </form>
       </div>
+
+      {/* Fireworks & Crackers Celebration Modal on Onboarding Save */}
+      <CongratulationsJobsModal
+        isOpen={showCelebration}
+        onClose={() => {
+          setShowCelebration(false);
+          onClose();
+        }}
+        onNavigateToJobs={() => {
+          setShowCelebration(false);
+          onClose();
+          if (onNavigateToJobs) {
+            onNavigateToJobs();
+          }
+        }}
+      />
     </div>
   );
 };

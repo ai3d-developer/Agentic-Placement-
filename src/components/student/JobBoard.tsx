@@ -3,8 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../ui/GlassCard';
 import { ApplicationConfirmationModal } from '../ui/ApplicationConfirmationModal';
 import { JobOpportunity, JobSourceType } from '../../types';
-import { getCompanyPortalDeepLink, getAlternativePortalLinks } from '../../utils/jobLinks';
-import { sampleJobs } from '../../services/mockData';
+import { getCompanyPortalDeepLink, getAlternativePortalLinks, getLiveSearchKeyword } from '../../utils/jobLinks';
+import { sampleJobs, generateDynamicJobsForStudent } from '../../services/mockData';
 import { calculateDynamicMatch as calculateDynamicMatchShared } from '../../utils/jobMatch';
 import { callGeminiAI } from '../../services/aiEngine';
 
@@ -27,8 +27,11 @@ import {
   RefreshCw,
   UserCheck,
   Award,
-  Users
+  Users,
+  BookOpen
 } from 'lucide-react';
+import { SkillStudyResourceModal } from '../ui/SkillStudyResourceModal';
+
 interface VerifiedApplication {
   refNo?: string;
   timestamp: string;
@@ -43,6 +46,7 @@ export const JobBoard: React.FC<JobBoardProps> = ({ onNavigate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmingJob, setConfirmingJob] = useState<JobOpportunity | null>(null);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
+  const [resourceModalSkill, setResourceModalSkill] = useState<string | null>(null);
   const [verifiedApplications, setVerifiedApplications] = useState<Record<string, VerifiedApplication>>({});
   const [verifyingJob, setVerifyingJob] = useState<JobOpportunity | null>(null);
   const [enhancingJob, setEnhancingJob] = useState<JobOpportunity | null>(null);
@@ -412,8 +416,14 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
     return calculateDynamicMatchShared(jobSkills, profile);
   };
 
-  // Verified Jobs Dataset
-  const combinedJobsList = sampleJobs;
+  // Dynamic jobs for this student's department + real skills, merged with static jobs
+  const dynamicJobs = generateDynamicJobsForStudent(profile);
+  // Deduplicate by id (dynamic jobs take priority over same-id static jobs)
+  const dynamicIds = new Set(dynamicJobs.map(j => j.id));
+  const filteredStatic = sampleJobs.filter(j => !dynamicIds.has(j.id));
+  const combinedJobsList = dynamicJobs.length > 0
+    ? [...dynamicJobs, ...filteredStatic]
+    : sampleJobs;
 
   const isUnparsed = (!profile.technicalSkills || profile.technicalSkills.length === 0) && (!profile.department || profile.department === '');
 
@@ -595,12 +605,179 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
               Real-Time Jobs & Skill Match Engine
             </h1>
             <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm mt-1 max-w-2xl font-medium">
-              Deep-links directly to official career portal search results ({profile.department} Department Focus).
+              Jobs below are matched to <span className="font-extrabold text-indigo-600 dark:text-indigo-300">{profile.name || 'Your'}'s</span> actual resume skills
+              {profile.technicalSkills?.length > 0 && (
+                <> — <span className="font-bold text-emerald-600 dark:text-emerald-400">{profile.technicalSkills.slice(0, 3).join(', ')}{profile.technicalSkills.length > 3 ? ` +${profile.technicalSkills.length - 3} more` : ''}</span></>  
+              )}. Skill % reflects how many job requirements you already meet.
             </p>
           </div>
         </div>
       </div>
 
+
+      {/* ─── STUDENT LIVE PROFILE SNAPSHOT ─────────────────────────────────── */}
+      {!hasNoSkills && (
+        <div className="rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-px shadow-xl">
+          <div className="rounded-2xl bg-slate-950/95 p-5 space-y-4">
+            {/* Title row */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎓</span>
+                <span className="text-white font-black text-sm uppercase tracking-wide">Your Live Profile — Jobs Are Generated From This</span>
+              </div>
+              <span className="text-xs text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full animate-pulse">
+                ✅ Live Personalized Engine Active
+              </span>
+            </div>
+
+            {/* Profile stats grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <p className="text-slate-400 text-xs font-semibold mb-1">📚 Department</p>
+                <p className="text-white font-black text-xs leading-tight">{profile.department || '—'}</p>
+              </div>
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <p className="text-slate-400 text-xs font-semibold mb-1">⭐ CGPA</p>
+                <p className="text-white font-black text-sm">{profile.cgpa || '—'}
+                  <span className="text-xs text-slate-400 font-normal"> / 10</span>
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <p className="text-slate-400 text-xs font-semibold mb-1">🎓 Grad Year</p>
+                <p className="text-white font-black text-sm">{profile.graduationYear || '—'}</p>
+              </div>
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <p className="text-slate-400 text-xs font-semibold mb-1">🔖 Backlogs</p>
+                <p className={`font-black text-sm ${(profile.backlogs || 0) === 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {profile.backlogs ?? 0} {(profile.backlogs || 0) === 0 ? '✓ Clean' : 'Active'}
+                </p>
+              </div>
+            </div>
+
+            {/* Skills from profile - Clickable to filter jobs below */}
+            <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-slate-300 text-xs font-bold flex items-center gap-1.5">
+                  <span>🛠️ Your Skills (Click any skill to filter matched jobs below):</span>
+                </p>
+                {selectedSkillTag !== 'All' && (
+                  <button
+                    onClick={() => setSelectedSkillTag('All')}
+                    className="text-[10px] text-rose-400 hover:text-rose-300 font-bold underline cursor-pointer"
+                  >
+                    Reset Filter ({selectedSkillTag}) ✕
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(profile.technicalSkills || []).map((skill, i) => {
+                  const isSelected = selectedSkillTag.toLowerCase() === skill.toLowerCase();
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedSkillTag('All');
+                          addNotification('Cleared skill filter.');
+                        } else {
+                          setSelectedSkillTag(skill);
+                          addNotification(`🎯 Filtered jobs matching skill: "${skill}"`);
+                          setTimeout(() => {
+                            const elem = document.getElementById('job-listings-section');
+                            if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer transform hover:scale-105 active:scale-95 flex items-center gap-1.5 shadow-sm ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 border-cyan-400 text-white shadow-lg shadow-indigo-600/40 ring-2 ring-cyan-400'
+                          : 'bg-indigo-600/20 border-indigo-400/30 hover:bg-indigo-600/40 hover:border-indigo-400 text-indigo-200'
+                      }`}
+                      title={`Click to view jobs matching ${skill}`}
+                    >
+                      <span>{skill}</span>
+                      {isSelected ? <span className="text-white font-bold">✓</span> : <span className="text-[10px] opacity-70">🔍</span>}
+                    </button>
+                  );
+                })}
+                {(profile.technicalSkills || []).length === 0 && (
+                  <span className="text-slate-500 text-xs">No skills found — upload your resume to auto-detect.</span>
+                )}
+              </div>
+            </div>
+
+            {/* Certifications */}
+            {(profile.certifications || []).length > 0 && (
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <p className="text-slate-400 text-xs font-semibold mb-2">🏅 Certifications ({profile.certifications.length})</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.certifications.map((c, i) => (
+                    <span key={i} className="px-2.5 py-1 rounded-lg bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                      {c.title} — {c.issuer}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Live search links */}
+            {(() => {
+              const liveKeyword = getLiveSearchKeyword(profile.technicalSkills || [], profile.department || '');
+              return (
+                <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                  <p className="text-slate-400 text-xs font-semibold mb-2">🔴 LIVE Search — Openings Matching Your Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {/* LinkedIn live search */}
+                    <a
+                      href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(liveKeyword)}&location=India`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-600/20 border border-sky-500/40 hover:bg-sky-600/40 text-sky-300 text-xs font-bold transition-all"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      LinkedIn Live Jobs ({liveKeyword}) →
+                    </a>
+                    {/* Naukri live search */}
+                    <a
+                      href={`https://www.naukri.com/jobs-in-india?k=${encodeURIComponent(liveKeyword)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600/40 text-blue-300 text-xs font-bold transition-all"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Naukri Live Jobs →
+                    </a>
+                    {/* Indeed live search */}
+                    <a
+                      href={`https://in.indeed.com/jobs?q=${encodeURIComponent(liveKeyword)}&l=India`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600/20 border border-indigo-500/40 hover:bg-indigo-600/40 text-indigo-300 text-xs font-bold transition-all"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Indeed Live Jobs →
+                    </a>
+                    {/* Internshala */}
+                    <a
+                      href={`https://internshala.com/internships/`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-orange-600/20 border border-orange-500/40 hover:bg-orange-600/40 text-orange-300 text-xs font-bold transition-all"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Internshala Live →
+                    </a>
+                  </div>
+                  <p className="text-slate-500 text-xs mt-2">
+                    🔎 Live Role Filter: <span className="text-emerald-400 font-bold font-mono">"{liveKeyword}"</span> · 100% Active Postings in India
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* NO SKILLS WARNING BANNER (When student has no skills listed in profile) */}
       {hasNoSkills && (
@@ -776,7 +953,24 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
       )}
 
       {/* Jobs List */}
-      <div className="space-y-4">
+      <div id="job-listings-section" className="space-y-4 scroll-mt-6">
+        {selectedSkillTag !== 'All' && (
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-purple-500/10 to-cyan-500/20 border border-indigo-500/40 flex items-center justify-between gap-3 text-xs font-bold text-white shadow-md">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+              <span>
+                🎯 Showing Jobs Filtered by Skill: <strong className="text-cyan-300 font-mono text-sm px-1.5 py-0.5 rounded bg-white/10">{selectedSkillTag}</strong> ({filteredJobs.length} matching openings)
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedSkillTag('All')}
+              className="px-3 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/40 border border-rose-500/40 text-rose-300 text-[11px] font-bold transition-all cursor-pointer"
+            >
+              Clear Filter ✕
+            </button>
+          </div>
+        )}
+
         {filteredJobs.length === 0 ? (
           <GlassCard className="p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-cyan-400 flex items-center justify-center mx-auto">
@@ -1000,9 +1194,22 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
                   </div>
 
                   {missing.length > 0 && !hasNoSkills && (
-                    <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-300 font-medium flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/40">
+                    <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-300 font-medium flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/40 flex-wrap">
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <span>Skill Gap: Add <strong className="font-bold">{missing.join(', ')}</strong> to reach 100% match!</span>
+                      <span>Skill Gap:</span>
+                      <div className="flex flex-wrap gap-1 items-center">
+                        {missing.map((sk, sIdx) => (
+                          <button
+                            key={sIdx}
+                            onClick={() => setResourceModalSkill(sk)}
+                            className="text-[10px] px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 hover:bg-indigo-600 hover:text-white border border-amber-300 dark:border-amber-600/40 font-bold transition flex items-center gap-1 cursor-pointer shadow-xs"
+                            title={`Touch to learn & practice ${sk}`}
+                          >
+                            <BookOpen className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
+                            <span>{sk} (Study ↗)</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1151,10 +1358,23 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
                 </div>
 
                 {missing.length > 0 && (
-                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs leading-relaxed font-medium flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="font-bold">AI Skill Gap Recommendation:</strong> Add <span className="underline font-bold">{missing.join(', ')}</span> to your resume profile before submitting to increase callback chance to 98%!
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs leading-relaxed font-medium space-y-2">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                      <strong className="font-bold">AI Skill Gap Recommendation (Touch to study &amp; practice):</strong>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {missing.map((sk, sIdx) => (
+                        <button
+                          key={sIdx}
+                          onClick={() => setResourceModalSkill(sk)}
+                          className="text-[11px] px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-amber-600 hover:text-white border border-amber-300 dark:border-amber-600/40 text-amber-900 dark:text-amber-200 font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                          title={`Touch to learn & practice ${sk}`}
+                        >
+                          <BookOpen className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                          <span>+ {sk} (Study Materials ↗)</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -1470,6 +1690,18 @@ Respond with ONLY valid JSON inside a code block (matching this exact schema):
           setConfirmingJob(null);
         }}
       />
+
+      {/* Study Materials & Practice Website Modal */}
+      {resourceModalSkill && (
+        <SkillStudyResourceModal
+          isOpen={!!resourceModalSkill}
+          onClose={() => setResourceModalSkill(null)}
+          skillName={resourceModalSkill}
+          category="Missing Skill (Gap Bridge)"
+          allSkillsList={[resourceModalSkill]}
+          onSelectSkill={(s) => setResourceModalSkill(s)}
+        />
+      )}
     </div>
   );
 };

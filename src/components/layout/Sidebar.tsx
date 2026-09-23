@@ -47,15 +47,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     : sampleJobs.length;
 
   const studentNavItems = [
-    { id: 'dashboard', label: 'Student Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'jobs', label: 'Verified Jobs & Drives', icon: <Briefcase className="w-4 h-4" /> },
-    { id: 'resume', label: 'Resume AI & ATS Checker', icon: <FileText className="w-4 h-4" /> },
-    { id: 'skills', label: 'Career Roadmap & Skill Gap', icon: <Target className="w-4 h-4" /> },
-    { id: 'coach', label: 'AI Placement Coach', icon: <BotMessageSquare className="w-4 h-4" /> },
-    { id: 'tests', label: 'Skill Gap Tests', icon: <Award className="w-4 h-4" /> },
-    { id: 'interview', label: 'AI Voice/Text Interview', icon: <Mic className="w-4 h-4" /> },
-    { id: 'readiness', label: 'Placement Readiness', icon: <TrendingUp className="w-4 h-4" /> },
-    { id: 'profile', label: 'Student Profile', icon: <User className="w-4 h-4" /> }
+    { id: 'dashboard', label: 'Student Dashboard AI Agent', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'jobs', label: 'Verified Jobs & Drives AI Agent', icon: <Briefcase className="w-4 h-4" /> },
+    { id: 'resume', label: 'Resume AI & ATS Checker AI Agent', icon: <FileText className="w-4 h-4" /> },
+    { id: 'skills', label: 'Career Roadmap & Skill Gap AI Agent', icon: <Target className="w-4 h-4" /> },
+    { id: 'coach', label: 'AI Placement Coach AI Agent', icon: <BotMessageSquare className="w-4 h-4" /> },
+    { id: 'tests', label: 'Skill Gap Tests AI Agent', icon: <Award className="w-4 h-4" /> },
+    { id: 'interview', label: 'AI Voice/Text Interview AI Agent', icon: <Mic className="w-4 h-4" /> },
+    { id: 'readiness', label: 'Placement Readiness AI Agent', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'profile', label: 'Student Profile AI Agent', icon: <User className="w-4 h-4" /> }
   ];
 
   const placementOfficerNavItems = [
@@ -114,27 +114,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
   const currentItems = getNavItems();
 
   return (
-    <aside className="w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800/80 h-full p-4 flex flex-col justify-between hidden md:flex shrink-0 overflow-y-auto select-none">
+    <aside className="w-72 lg:w-80 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800/80 h-full p-4 flex flex-col justify-between hidden md:flex shrink-0 overflow-y-auto select-none">
       <div className="space-y-6">
         <div>
           <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">
             PlacementOS Navigation ({role.replace('_', ' ').toUpperCase()})
           </div>
-          <nav className="space-y-1">
+          <nav className="space-y-1.5">
             {currentItems.map(item => {
               const active = activeTab === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left ${
                     active
                       ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
                       : 'text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-slate-100 hover:bg-indigo-50 dark:hover:bg-slate-900/80'
                   }`}
                 >
-                  <span className={active ? 'text-white' : 'text-indigo-600 dark:text-indigo-400'}>{item.icon}</span>
-                  <span className="truncate">{item.label}</span>
+                  <span className={`shrink-0 ${active ? 'text-white' : 'text-indigo-600 dark:text-indigo-400'}`}>{item.icon}</span>
+                  <span className="whitespace-normal leading-tight">{item.label}</span>
                 </button>
               );
             })}

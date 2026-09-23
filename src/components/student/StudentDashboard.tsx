@@ -26,6 +26,7 @@ import {
   FileText,
   ExternalLink
 } from 'lucide-react';
+import { SkillStudyResourceModal } from '../ui/SkillStudyResourceModal';
 
 interface StudentDashboardProps {
   onNavigate: (tab: string) => void;
@@ -37,12 +38,34 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
   const [confirmingJob, setConfirmingJob] = useState<JobOpportunity | null>(null);
   const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
   const [jobsList, setJobsList] = useState<JobOpportunity[]>(sampleJobs);
+  const [resourceModalSkill, setResourceModalSkill] = useState<string | null>(null);
 
   // daily-auto-feed fetch removed
 
   const isUnparsed = (!profile.technicalSkills || profile.technicalSkills.length === 0) && (!profile.department || profile.department === '');
 
-  const missingSkills = isUnparsed ? ['Add Profile & Links'] : ['System Design', 'C++', 'Azure Cloud', 'Docker Orchestration'];
+  // Dynamic missing skills based on department / industry benchmarks
+  const getDynamicMissingSkills = () => {
+    if (isUnparsed) return ['Add Profile & Links'];
+    const userSkillsLower = (profile.technicalSkills || []).map(s => s.toLowerCase().trim());
+    const dept = (profile.department || '').toLowerCase();
+    
+    let candidateGaps: string[] = [];
+    if (dept.includes('ece') || dept.includes('eee') || dept.includes('electrical')) {
+      candidateGaps = ['Embedded C/C++', 'RTOS Design', 'Microcontroller Programming', 'IoT Protocols', 'VLSI Design'];
+    } else if (dept.includes('mech')) {
+      candidateGaps = ['SolidWorks', 'ANSYS FEA', 'AutoCAD Drafting', 'Python for Simulation', 'PLC Automation'];
+    } else if (dept.includes('civil')) {
+      candidateGaps = ['AutoCAD Drafting', 'Structural BIM Automation', 'Revit API', 'GIS Spatial Data', 'Project Estimation'];
+    } else {
+      candidateGaps = ['System Design', 'Data Structures & Algorithms', 'Docker', 'Kubernetes', 'Cloud (AWS/Azure)', 'SQL Optimization'];
+    }
+
+    const filtered = candidateGaps.filter(g => !userSkillsLower.some(us => us.includes(g.toLowerCase()) || g.toLowerCase().includes(us)));
+    return filtered.length > 0 ? filtered.slice(0, 4) : ['System Design', 'Docker', 'Cloud Architecture', 'Data Structures & Algorithms'];
+  };
+
+  const missingSkills = getDynamicMissingSkills();
 
   // Calculate real dynamic skill match percentage and matched skills for each job in jobsList using correct shared matching logic
   const realSkillMatchedJobs = jobsList.map(job => {
@@ -208,6 +231,38 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
             <Upload className="w-4 h-4" />
             <span>Complete Profile & Links</span>
           </button>
+        </div>
+      )}
+
+      {/* Extracted Skills Ribbon (Clickable to explore jobs) */}
+      {profile.technicalSkills && profile.technicalSkills.length > 0 && (
+        <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-cyan-400 animate-pulse" />
+              <span>Your Skills &amp; Job Requirements (Click any skill to view matched jobs):</span>
+            </div>
+            <button
+              onClick={() => onNavigate('jobs')}
+              className="text-xs text-indigo-600 dark:text-cyan-400 font-bold hover:underline flex items-center gap-1"
+            >
+              <span>Explore All Jobs</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {profile.technicalSkills.map((skill, idx) => (
+              <button
+                key={idx}
+                onClick={() => onNavigate('jobs')}
+                className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 text-xs font-bold hover:scale-105 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                title={`Explore jobs matching ${skill}`}
+              >
+                <span>{skill}</span>
+                <span className="text-[10px] opacity-75">🔍</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -438,21 +493,41 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
               <AlertTriangle className="w-4 h-4" />
               <span>Skill Gap & Profile Status</span>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mb-3 font-medium">
-              {isUnparsed ? 'Upload your PDF resume to extract skills & unlock 100% eligibility roadmaps.' : 'To reach 100% eligibility for top campus drives, add these skills:'}
+            <p className="text-xs text-slate-600 dark:text-slate-300 mb-2 font-medium">
+              {isUnparsed ? 'Upload your PDF resume to extract skills & unlock 100% eligibility roadmaps.' : 'To reach 100% eligibility for top campus drives, touch any skill to study & practice:'}
             </p>
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-3">
               {missingSkills.map((sk, idx) => (
-                <span key={idx} className="text-xs px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20 font-semibold">
-                  + {sk}
-                </span>
+                <button
+                  key={idx}
+                  onClick={() => {
+                    if (isUnparsed) {
+                      onOpenOnboarding ? onOpenOnboarding() : onNavigate('profile');
+                    } else {
+                      setResourceModalSkill(sk);
+                    }
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold transition-all transform hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-sm group"
+                  title={`Touch to open study websites, tutorials & practice tests for ${sk}`}
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+                  <span>+ {sk}</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100" />
+                </button>
               ))}
             </div>
+
+            {!isUnparsed && (
+              <p className="text-[10px] text-amber-700 dark:text-amber-400 mb-3 bg-amber-50 dark:bg-amber-950/40 p-1.5 px-2.5 rounded-lg border border-amber-200/60 dark:border-amber-500/20 font-medium">
+                💡 <strong>Quick Action:</strong> Tap any missing skill above to open official docs, LeetCode practice, free courses &amp; videos!
+              </p>
+            )}
+
             <button
               onClick={() => onNavigate(isUnparsed ? 'resume' : 'skills')}
-              className="w-full py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 text-xs font-bold transition-all text-center dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30"
+              className="w-full py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 text-xs font-bold transition-all text-center dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30 cursor-pointer"
             >
-              {isUnparsed ? 'Upload Resume →' : 'Generate AI Skill Roadmap'}
+              {isUnparsed ? 'Upload Resume →' : 'Generate Full AI Skill Roadmap'}
             </button>
           </GlassCard>
 
@@ -505,6 +580,18 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate, 
           </GlassCard>
         </div>
       </div>
+
+      {/* Study Materials & Practice Website Modal */}
+      {resourceModalSkill && (
+        <SkillStudyResourceModal
+          isOpen={!!resourceModalSkill}
+          onClose={() => setResourceModalSkill(null)}
+          skillName={resourceModalSkill}
+          category="Missing Skill (Gap Bridge)"
+          allSkillsList={missingSkills}
+          onSelectSkill={(s) => setResourceModalSkill(s)}
+        />
+      )}
     </div>
   );
 };

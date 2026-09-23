@@ -4,6 +4,7 @@ import { GlassCard } from '../ui/GlassCard';
 import { parseResumeTextToProfile } from '../../services/aiEngine';
 import { extractTextFromPdfFile } from '../../utils/pdfExtractor';
 import { saveUploadedResumeDataToFirestore } from '../../services/firebase';
+import { CongratulationsJobsModal } from '../ui/CongratulationsJobsModal';
 import {
   User,
   GraduationCap,
@@ -31,6 +32,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ onNavigateToJobs
   const [newSkill, setNewSkill] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [showCelebrationModal, setShowCelebrationModal] = useState(false);
 
   // Sync local form state with updated profile context
   useEffect(() => {
@@ -41,13 +43,11 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ onNavigateToJobs
     e.preventDefault();
     updateProfile({ ...formData, isOnboarded: true });
     setSavedSuccess(true);
-    addNotification('✅ Student Profile saved! Showing your matched jobs...');
+    addNotification('🎉 Student Profile saved & matched jobs ready!');
+    setShowCelebrationModal(true);
     setTimeout(() => {
       setSavedSuccess(false);
-      if (onNavigateToJobs) {
-        onNavigateToJobs();
-      }
-    }, 600);
+    }, 2000);
   };
 
   const handleResetCache = () => {
@@ -96,7 +96,8 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ onNavigateToJobs
         parsed
       );
 
-      addNotification(`⚡ Resume extracted & saved to Firebase Firestore! Name: ${parsed.name || 'Candidate'} | Dept: ${parsed.department} | Skills: ${parsed.technicalSkills.length}`);
+      addNotification(`🎉 Resume extracted & saved to Firebase Firestore! Name: ${parsed.name || 'Candidate'} | Dept: ${parsed.department} | Skills: ${parsed.technicalSkills.length}`);
+      setShowCelebrationModal(true);
     } catch (err) {
       console.warn('Resume read:', err);
     } finally {
@@ -403,6 +404,16 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ onNavigateToJobs
         </GlassCard>
 
       </div>
+
+      {/* Fireworks & Crackers Celebration Modal on Profile Update */}
+      <CongratulationsJobsModal
+        isOpen={showCelebrationModal}
+        onClose={() => setShowCelebrationModal(false)}
+        onNavigateToJobs={() => {
+          setShowCelebrationModal(false);
+          if (onNavigateToJobs) onNavigateToJobs();
+        }}
+      />
     </form>
   );
 };

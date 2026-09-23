@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../ui/GlassCard';
 import { generateSkillGapAnalysis, callGeminiAI } from '../../services/aiEngine';
-import { Target, CheckCircle2, XCircle, Calendar, Sparkles, BookOpen, Building2, ArrowUpRight, AlertTriangle, HelpCircle, RefreshCw, ChevronDown, ChevronUp, Lightbulb, Play } from 'lucide-react';
+import { Target, CheckCircle2, XCircle, Calendar, Sparkles, BookOpen, Building2, ArrowUpRight, AlertTriangle, HelpCircle, RefreshCw, ChevronDown, ChevronUp, Lightbulb, Play, ExternalLink, Globe, GraduationCap } from 'lucide-react';
+import { SkillStudyResourceModal } from '../ui/SkillStudyResourceModal';
+import { getStudyResourcesForSkill } from '../../services/learningResources';
 
 interface AIQuestion {
   question: string;
@@ -43,6 +45,10 @@ export const SkillGapAnalysis: React.FC = () => {
     return list[0] || 'Google';
   });
   const [testScores, setTestScores] = useState<Record<string, number>>({});
+
+  // Study Resource Modal State
+  const [resourceModalSkill, setResourceModalSkill] = useState<string | null>(null);
+  const [resourceModalCategory, setResourceModalCategory] = useState<'Missing Skill (Gap Bridge)' | 'Provided Skill (Mastery Booster)'>('Missing Skill (Gap Bridge)');
 
   // AI Question Hub states
   const [selectedHubSkill, setSelectedHubSkill] = useState<string>('');
@@ -425,23 +431,44 @@ Provide the response in the following exact JSON format (no markdown code blocks
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Strong Skills */}
             <GlassCard className="p-6 border-emerald-500/20">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Strong Skills Matched with {selectedCompany}
-              </h3>
+              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Strong Skills Matched with {selectedCompany}
+                </h3>
+                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  {gapResult.strongSkills.length} Verified
+                </span>
+              </div>
               <div className="space-y-2 mt-4">
                 {gapResult.strongSkills.map((sk, idx) => (
-                  <button
+                  <div
                     key={idx}
-                    onClick={() => setSelectedHubSkill(sk)}
-                    className={`w-full flex justify-between items-center p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                    className={`w-full flex justify-between items-center p-2.5 rounded-xl border text-xs font-semibold transition-all ${
                       selectedHubSkill === sk
                         ? 'bg-indigo-600/15 border-indigo-500 text-indigo-700 dark:text-indigo-300'
-                        : 'bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-slate-300'
+                        : 'bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200'
                     }`}
                   >
-                    <span>{sk}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">Verified ✅</span>
-                  </button>
+                    <button
+                      onClick={() => setSelectedHubSkill(sk)}
+                      className="flex items-center gap-2 text-left flex-1 cursor-pointer"
+                    >
+                      <span>{sk}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">Verified ✅</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setResourceModalSkill(sk);
+                        setResourceModalCategory('Provided Skill (Mastery Booster)');
+                      }}
+                      title={`Open study materials & websites for ${sk}`}
+                      className="p-1.5 px-2 rounded-lg bg-white dark:bg-slate-900 hover:bg-indigo-600 hover:text-white border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold flex items-center gap-1 transition cursor-pointer shrink-0"
+                    >
+                      <BookOpen className="w-3 h-3 text-indigo-500 hover:text-white" />
+                      <span>Study & Docs</span>
+                    </button>
+                  </div>
                 ))}
                 {gapResult.strongSkills.length === 0 && (
                   <p className="text-xs text-slate-500 dark:text-slate-400 italic">No exact skill matches yet.</p>
@@ -451,23 +478,49 @@ Provide the response in the following exact JSON format (no markdown code blocks
 
             {/* Missing Skills */}
             <GlassCard className="p-6 border-rose-500/20">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <XCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" /> Missing Competencies & Skill Gaps
-              </h3>
+              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" /> Missing Competencies & Skill Gaps
+                </h3>
+                <span className="text-[10px] text-rose-600 font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-full">
+                  {gapResult.missingSkills.length} Missing
+                </span>
+              </div>
               <div className="space-y-2 mt-4">
                 {gapResult.missingSkills.map((sk, idx) => (
-                  <button
+                  <div
                     key={idx}
-                    onClick={() => setSelectedHubSkill(sk)}
-                    className={`w-full flex justify-between items-center p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                    className={`w-full flex justify-between items-center p-2.5 rounded-xl border text-xs font-semibold transition-all ${
                       selectedHubSkill === sk
                         ? 'bg-indigo-600/15 border-indigo-500 text-indigo-700 dark:text-indigo-300'
-                        : 'bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-slate-300'
+                        : 'bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200'
                     }`}
                   >
-                    <span>{sk}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-transparent">High Priority ⚡</span>
-                  </button>
+                    <button
+                      onClick={() => {
+                        setSelectedHubSkill(sk);
+                        setResourceModalSkill(sk);
+                        setResourceModalCategory('Missing Skill (Gap Bridge)');
+                      }}
+                      className="flex items-center gap-2 text-left flex-1 cursor-pointer group"
+                      title={`Touch to learn & practice ${sk}`}
+                    >
+                      <span className="group-hover:text-rose-600 dark:group-hover:text-rose-400 font-bold transition">{sk}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-transparent">High Priority ⚡</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setResourceModalSkill(sk);
+                        setResourceModalCategory('Missing Skill (Gap Bridge)');
+                      }}
+                      title={`Open study materials & websites for missing skill ${sk}`}
+                      className="p-1.5 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-600 hover:text-white border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[10px] font-bold flex items-center gap-1 transition cursor-pointer shrink-0"
+                    >
+                      <BookOpen className="w-3 h-3 text-rose-500 hover:text-white" />
+                      <span>Study & Fill Gap</span>
+                    </button>
+                  </div>
                 ))}
                 {gapResult.missingSkills.length === 0 && (
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">🎉 Congratulations! You have 100% skill match for {selectedCompany}!</p>
@@ -505,14 +558,33 @@ Provide the response in the following exact JSON format (no markdown code blocks
                     ))}
                   </select>
 
-                  <button
-                    onClick={() => handleGenerateQuestions(selectedHubSkill)}
-                    disabled={isLoadingAI}
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                  >
-                    {isLoadingAI ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-white" />}
-                    <span>Generate AI Hub</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleGenerateQuestions(selectedHubSkill)}
+                      disabled={isLoadingAI}
+                      className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                    >
+                      {isLoadingAI ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-white" />}
+                      <span>Generate AI Hub</span>
+                    </button>
+
+                    {selectedHubSkill && (
+                      <button
+                        onClick={() => {
+                          setResourceModalSkill(selectedHubSkill);
+                          setResourceModalCategory(
+                            gapResult.missingSkills.includes(selectedHubSkill)
+                              ? 'Missing Skill (Gap Bridge)'
+                              : 'Provided Skill (Mastery Booster)'
+                          );
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0"
+                      >
+                        <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Study Materials & Websites</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -651,18 +723,205 @@ Provide the response in the following exact JSON format (no markdown code blocks
                     <span className="text-xs font-bold text-indigo-600 dark:text-indigo-300">{item.topic}</span>
                   </div>
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{item.description}</p>
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  
+                  <div className="flex flex-wrap gap-2 pt-1 items-center">
+                    <span className="text-[10px] text-slate-400 font-bold">Recommended Resources:</span>
                     {item.resources.map((res, rIdx) => (
-                      <span key={rIdx} className="text-[10px] px-2 py-1 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 flex items-center gap-1 shadow-sm">
-                        <BookOpen className="w-3 h-3 text-cyan-600 dark:text-cyan-400" /> {res}
-                      </span>
+                      <button
+                        key={rIdx}
+                        onClick={() => {
+                          const targetSkill = (item.skillsCovered && item.skillsCovered[0]) || gapResult.missingSkills[0] || allSkills[0];
+                          if (targetSkill) {
+                            setResourceModalSkill(targetSkill);
+                            setResourceModalCategory(
+                              gapResult.missingSkills.includes(targetSkill)
+                                ? 'Missing Skill (Gap Bridge)'
+                                : 'Provided Skill (Mastery Booster)'
+                            );
+                          }
+                        }}
+                        className="text-[10px] px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:border-indigo-400 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                      >
+                        <BookOpen className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                        <span>{res}</span>
+                        <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                      </button>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
           </GlassCard>
+
+          {/* DEDICATED STUDY WEBSITES & RESOURCE PACKS SECTION FOR MISSING AND PROVIDED SKILLS */}
+          <GlassCard className="p-6 space-y-5 border border-indigo-500/20">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-indigo-600 dark:text-cyan-400" /> Recommended Study Websites & Learning Materials
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Verified platforms, official documentation, free tutorials, and video playlists to bridge missing skills and master existing skills.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 font-bold">
+                  {gapResult.missingSkills.length} Missing Skills
+                </span>
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 font-bold">
+                  {gapResult.strongSkills.length} Provided Skills
+                </span>
+              </div>
+            </div>
+
+            {/* Missing Skills Study Websites */}
+            {gapResult.missingSkills.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider flex items-center gap-1.5">
+                  <XCircle className="w-3.5 h-3.5" /> Priority 1: Study Websites to Fill Missing Skills Gap ({selectedCompany})
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {gapResult.missingSkills.map(sk => {
+                    const pack = getStudyResourcesForSkill(sk, 'Missing Skill (Gap Bridge)');
+                    return (
+                      <div
+                        key={sk}
+                        className="p-4 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-500/20 flex flex-col justify-between space-y-3"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                              {sk}
+                            </span>
+                            <span className="text-[9px] px-2 py-0.5 rounded font-extrabold bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-500/20 dark:text-rose-300">
+                              Gap Bridge ⚡
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {pack.overview}
+                          </p>
+
+                          {/* Top 2 Primary Resources */}
+                          <div className="space-y-1.5 pt-1">
+                            {pack.resources.slice(0, 2).map((res, rIdx) => (
+                              <a
+                                key={rIdx}
+                                href={res.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-cyan-400 transition group"
+                              >
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <BookOpen className="w-3 h-3 text-indigo-500 shrink-0" />
+                                  <span className="truncate">{res.title}</span>
+                                </div>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0 font-mono">
+                                  {res.provider}
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setResourceModalSkill(sk);
+                            setResourceModalCategory('Missing Skill (Gap Bridge)');
+                          }}
+                          className="w-full py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>View All Websites, Videos & Practice for {sk}</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Candidate's Provided Skills Study Websites */}
+            {gapResult.strongSkills.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Priority 2: Deepen Mastery on Your Provided Resume Skills
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {gapResult.strongSkills.map(sk => {
+                    const pack = getStudyResourcesForSkill(sk, 'Provided Skill (Mastery Booster)');
+                    return (
+                      <div
+                        key={sk}
+                        className="p-4 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-500/20 flex flex-col justify-between space-y-3"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                              {sk}
+                            </span>
+                            <span className="text-[9px] px-2 py-0.5 rounded font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300">
+                              Interview Mastery 🎯
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {pack.overview}
+                          </p>
+
+                          {/* Top 2 Primary Resources */}
+                          <div className="space-y-1.5 pt-1">
+                            {pack.resources.slice(0, 2).map((res, rIdx) => (
+                              <a
+                                key={rIdx}
+                                href={res.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-cyan-400 transition group"
+                              >
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <BookOpen className="w-3 h-3 text-emerald-500 shrink-0" />
+                                  <span className="truncate">{res.title}</span>
+                                </div>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0 font-mono">
+                                  {res.provider}
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setResourceModalSkill(sk);
+                            setResourceModalCategory('Provided Skill (Mastery Booster)');
+                          }}
+                          className="w-full py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>View All Websites, Videos & Practice for {sk}</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </GlassCard>
         </>
+      )}
+
+      {/* Study Materials & Recommended Websites Modal */}
+      {resourceModalSkill && (
+        <SkillStudyResourceModal
+          isOpen={!!resourceModalSkill}
+          onClose={() => setResourceModalSkill(null)}
+          skillName={resourceModalSkill}
+          category={resourceModalCategory}
+          allSkillsList={allSkills}
+          onSelectSkill={(s) => setResourceModalSkill(s)}
+        />
       )}
     </div>
   );

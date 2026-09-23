@@ -9,6 +9,7 @@ import { sampleJobs } from '../../services/mockData';
 import { extractTextFromPdfFile } from '../../utils/pdfExtractor';
 import { saveUploadedResumeDataToFirestore } from '../../services/firebase';
 import { ApplicationConfirmationModal } from '../ui/ApplicationConfirmationModal';
+import { CongratulationsJobsModal } from '../ui/CongratulationsJobsModal';
 import { FileText, Upload, Sparkles, Briefcase, ExternalLink, UserCheck, CheckCircle2, Award, FolderGit2, Check, ArrowRight, Clock, Users } from 'lucide-react';
 
 interface ResumeAnalyzerProps {
@@ -20,6 +21,7 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
   const [analyzing, setAnalyzing] = useState(false);
   const [confirmingJob, setConfirmingJob] = useState<JobOpportunity | null>(null);
   const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
+  const [showMatchedJobsPopup, setShowMatchedJobsPopup] = useState<boolean>(false);
   const [resumeText, setResumeText] = useState<string>(
     `Engineering Candidate\nDepartment: ${profile.department || 'Engineering'}\nSkills: ${(profile.technicalSkills || []).join(', ')}`
   );
@@ -83,6 +85,7 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
 
     addNotification(`⚡ Resume Extracted & Saved to Student Profile & Firebase Firestore! ${parsed.technicalSkills.length} Skills | ATS: ${parsed.atsScore}/100`);
     setActiveTab('matching_jobs');
+    setShowMatchedJobsPopup(true);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -572,6 +575,16 @@ export const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onNavigate }) =>
           }
           addNotification(`🎉 Application Submitted & Verified for ${confirmingJob?.company} (${confirmingJob?.role})! ${refNo ? `Ref No: ${refNo}` : 'Status Saved ✅'}`);
           setConfirmingJob(null);
+        }}
+      />
+
+      {/* Matched Jobs Fireworks Pop-up Modal on Resume Upload */}
+      <CongratulationsJobsModal
+        isOpen={showMatchedJobsPopup}
+        onClose={() => setShowMatchedJobsPopup(false)}
+        onNavigateToJobs={() => {
+          setShowMatchedJobsPopup(false);
+          if (onNavigate) onNavigate('jobs');
         }}
       />
     </div>

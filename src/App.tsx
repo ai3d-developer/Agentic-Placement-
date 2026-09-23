@@ -21,13 +21,13 @@ import { SuperAdminDashboard } from './components/superadmin/SuperAdminDashboard
 import { JobBoard } from './components/student/JobBoard';
 import { TodayJobsModal } from './components/ui/TodayJobsModal';
 import { StudentOnboardingModal } from './components/student/StudentOnboardingModal';
-import { IntroSplashScreen } from './components/auth/IntroSplashScreen';
+import { AgenticSplashScreen } from './components/auth/AgenticSplashScreen';
 import { LoginPage } from './components/auth/LoginPage';
 import { UserRole } from './types';
 
 const MainContent: React.FC = () => {
   const { role, setRole, profile, loginUser } = useAuth();
-  const [pageView, setPageView] = useState<'intro' | 'login' | 'dashboard'>('intro');
+  const [pageView, setPageView] = useState<'splash' | 'login' | 'dashboard'>('splash');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [showTodayJobsModal, setShowTodayJobsModal] = useState<boolean>(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState<boolean>(!profile.isOnboarded);
@@ -53,15 +53,14 @@ const MainContent: React.FC = () => {
     else if (selectedRole === 'super_admin') setActiveTab('super_admin');
   };
 
-  if (pageView === 'intro') {
-    return <IntroSplashScreen onEnterWebsite={() => setPageView('login')} />;
+  if (pageView === 'splash') {
+    return <AgenticSplashScreen onComplete={() => setPageView('login')} />;
   }
 
   if (pageView === 'login') {
     return (
       <LoginPage
         onLoginSuccess={handleLoginSuccess}
-        onBackToIntro={() => setPageView('intro')}
       />
     );
   }
@@ -144,7 +143,6 @@ const MainContent: React.FC = () => {
         onOpenTodayJobs={() => setShowTodayJobsModal(true)}
         onOpenOnboarding={() => setShowOnboardingModal(true)}
         onLogout={() => setPageView('login')}
-        onBackToIntro={() => setPageView('intro')}
       />
       <div className="flex-1 flex overflow-hidden relative">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />

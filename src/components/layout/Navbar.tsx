@@ -8,10 +8,9 @@ interface NavbarProps {
   onOpenTodayJobs?: () => void;
   onOpenOnboarding?: () => void;
   onLogout?: () => void;
-  onBackToIntro?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenTodayJobs, onOpenOnboarding, onLogout, onBackToIntro }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenTodayJobs, onOpenOnboarding, onLogout }) => {
   const { role, setRole, profile, notifications } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -130,20 +129,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenTodayJobs, onOpenOnboardin
             <div className="text-[10px] text-slate-500 dark:text-slate-400">{profile.college}</div>
           </div>
 
-          {onBackToIntro && (
-            <button
-              onClick={onBackToIntro}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 transition-all ml-1"
-              title="Return to AI Intro Agent Page"
-            >
-              <Monitor className="w-4 h-4 text-cyan-500" />
-            </button>
-          )}
-
           {onLogout && (
             <button
               onClick={onLogout}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-rose-500 transition-all"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-rose-500 transition-all ml-1"
               title="Logout to Login Page"
             >
               <LogOut className="w-4 h-4 text-rose-500" />
