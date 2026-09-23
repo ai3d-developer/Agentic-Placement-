@@ -406,53 +406,29 @@ Provide the response in the following exact JSON format (no markdown code blocks
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recommendations.map(rec => {
-                const isAnalyzed = analyzedCompanies.includes(rec.company);
                 const isSelected = selectedCompany === rec.company;
-
-                if (!isAnalyzed) {
-                  return (
-                    <div
-                      key={rec.company}
-                      className="p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-950/40 border border-dashed border-slate-300 dark:border-slate-800 flex flex-col justify-between space-y-3 hover:border-indigo-400 transition-all group"
-                    >
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{rec.company}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
-                            Awaiting Diagnostic
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 leading-relaxed">
-                          Run AI Skill Gap Diagnostic for {rec.company} to analyze missing competencies, realistic match %, and interview roadmap.
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => handleAnalyzeCompany(rec.company)}
-                        className="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow flex items-center justify-center gap-1.5 group-hover:scale-[1.02]"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                        <span>Analyze Skill Gap ({rec.company})</span>
-                      </button>
-                    </div>
-                  );
-                }
 
                 return (
                   <div
                     key={rec.company}
-                    className={`p-4 rounded-2xl border flex flex-col justify-between space-y-3 transition-all ${
+                    onClick={() => {
+                      setSelectedCompany(rec.company);
+                      addNotification(`🎯 Switched target company to ${rec.company} (${rec.readinessScore}% Match)`);
+                    }}
+                    className={`p-4 rounded-2xl border flex flex-col justify-between space-y-3 transition-all cursor-pointer hover:shadow-lg ${
                       isSelected
-                        ? 'bg-indigo-50/40 dark:bg-indigo-950/20 border-indigo-500/50 shadow-md ring-1 ring-indigo-500/30'
-                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'
+                        ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-500 shadow-md ring-2 ring-indigo-500/40'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-slate-700'
                     }`}
                   >
                     <div className="space-y-1.5">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-black text-slate-900 dark:text-white">{rec.company}</span>
+                          <span className="text-sm font-black text-slate-900 dark:text-white">{rec.company}</span>
                           {isSelected && (
-                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500 text-white font-extrabold">Active</span>
+                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-indigo-600 text-white font-black shadow-sm">
+                              Active Target
+                            </span>
                           )}
                         </div>
                         <span className="text-lg font-black text-indigo-600 dark:text-cyan-400">{rec.readinessScore}% Match</span>
@@ -467,12 +443,15 @@ Provide the response in the following exact JSON format (no markdown code blocks
                             Avg Test: {rec.averageTestScore}%
                           </span>
                         )}
+                        <span className="text-[9px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
+                          {rec.missingCount} Missing Skills
+                        </span>
                       </div>
                     </div>
 
-                    <div className="text-[11px] text-slate-500 leading-relaxed">
+                    <div className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                       {rec.status === 'ready' && (
-                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                        <span className="text-emerald-700 dark:text-emerald-400 font-medium">
                           🚀 High readiness! You match {rec.readinessScore}%. Recommended to apply now on the Verified Jobs portal.
                         </span>
                       )}
@@ -482,8 +461,8 @@ Provide the response in the following exact JSON format (no markdown code blocks
                         </span>
                       )}
                       {rec.status === 'gap' && (
-                        <span className="text-rose-500 font-medium">
-                          🛑 Take the {rec.company} skill gap tests (Basic to Advanced) to calculate full readiness parameters.
+                        <span className="text-rose-600 dark:text-rose-400 font-medium">
+                          🛑 You match {rec.readinessScore}%. Complete skill gap tests & learning roadmap to bridge competencies.
                         </span>
                       )}
                     </div>
@@ -496,10 +475,15 @@ Provide the response in the following exact JSON format (no markdown code blocks
                         </div>
                       ) : (
                         <button
-                          onClick={() => handleAnalyzeCompany(rec.company)}
-                          className="w-full py-1.5 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCompany(rec.company);
+                            addNotification(`🎯 Switched target company to ${rec.company} (${rec.readinessScore}% Match)`);
+                          }}
+                          className="w-full py-1.5 px-3 rounded-lg bg-slate-200 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-sm"
                         >
-                          <span>Switch to {rec.company} Roadmap</span>
+                          <span>Select {rec.company} Roadmap</span>
                           <ArrowUpRight className="w-3.5 h-3.5" />
                         </button>
                       )}
